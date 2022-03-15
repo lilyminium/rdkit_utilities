@@ -1,10 +1,11 @@
 name: docs
 channels:
+  - conda-forge
 dependencies:
     # Base depends
   - python
   - pip
-
+  - rdkit
 
 
     # Pip-only installs
