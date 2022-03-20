@@ -1,5 +1,7 @@
 import pytest
 from rdkit_utilities import Chem
+from rdkit_utilities.tests.datafiles import CCH_PDB
+
 
 @pytest.mark.parametrize("smiles, n_heavy_atoms, n_all_atoms", [
     ("[C:3][C:2][H:1]", 2, 3),
@@ -10,17 +12,43 @@ def test_MolFromSmiles(smiles, n_heavy_atoms, n_all_atoms):
     all_mol = Chem.MolFromSmiles(smiles, removeHs=False)
     assert all_mol.GetNumAtoms() == n_all_atoms
 
-def test_OrderByMapNumber():
-    mol = Chem.MolFromSmiles("[C:3][C:2][O:1]")
-    assert mol.GetAtomWithIdx(0).GetSymbol() == "C"
 
-    reordered = Chem.OrderByMapNumber(mol, clearAtomMapNumbers=False)
-    first = reordered.GetAtomWithIdx(0)
-    assert first.GetSymbol() == "O"
-    assert first.GetAtomMapNum() == 1
+@pytest.mark.parametrize(
+    "orderByMapNumber, clearAtomMapNumbers, firstElement, firstNum",
+    [
+        (False, False, "C", 3),
+        (False, True, "C", 0),
+        (True, False, "H", 1),
+        (True, True, "H", 0)
+    ]
+)
+def test_MolFromSmarts(orderByMapNumber, clearAtomMapNumbers, firstElement, firstNum):
+    rdmol = Chem.MolFromSmarts(
+        "[C:3][C:2][H:1]",
+        orderByMapNumber=orderByMapNumber,
+        clearAtomMapNumbers=clearAtomMapNumbers,
+    )
+    first = rdmol.GetAtomWithIdx(0)
+    assert first.GetSymbol() == firstElement
+    assert first.GetAtomMapNum() == firstNum
 
-    reordered = Chem.OrderByMapNumber(mol, clearAtomMapNumbers=True)
-    first = reordered.GetAtomWithIdx(0)
-    assert first.GetSymbol() == "O"
-    assert first.GetAtomMapNum() == 0
-    
+
+@pytest.mark.parametrize(
+    "mol_format, mol_input, order_atoms, map_number", [
+        ("smiles", "[C:3][C:2][H:1]", True, 2),
+        ("smiles", "[C:3][C:2][H:1]", False, 3),
+        ("smarts", "[C:3][C:2][H:1]", True, 1),
+        ("smarts", "[C:3][C:2][H:1]", False, 3),
+        (None, "[C:3][C:2][H:1]", True, 1),
+        (None, "[C:3][C:2][H:1]", False, 3),
+        ("pdb", CCH_PDB, True, 0),
+        ("pdb", CCH_PDB, False, 0),
+        (None, CCH_PDB, True, 0),
+        (None, CCH_PDB, False, 0),
+    ]
+)
+def test_mol_from_input(mol_format, mol_input, order_atoms, map_number):
+    rdmol = Chem.MolFromInput(mol_input, inputFormat=mol_format,
+                              orderByMapNumber=order_atoms)
+    first = rdmol.GetAtomWithIdx(0)
+    assert first.GetAtomMapNum() == map_number

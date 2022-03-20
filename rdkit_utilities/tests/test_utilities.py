@@ -1,20 +1,22 @@
 import pytest
 
-from rdkit_utilities import Chem, Utils
+from rdkit_utilities import Chem, Utilities
 
 
-@pytest.fixture
-def ordered_molecule():
-    rdmol = Chem.MolFromSmiles(
-        ("[H:1]-[O:2]-[c:3]1:[c:4](-[H:5]):[c:6](-[H:7])"
-         ":[c:8](-[C:13](=[O:14])-[O:15]-[C:16](-[H:17])"
-         "(-[H:18])-[C:19](-[H:20])(-[H:21])-[C:22](-[H:23])"
-         "(-[H:24])-[H:25]):[c:9](-[H:10]):[c:11]:1-[H:12]"),
-        removeHs=False
-    )
-    rdmol = Chem.OrderByMapNumber(rdmol, clearAtomMapNumbers=True)
-    return rdmol
+def test_OrderByMapNumber():
+    mol = Chem.MolFromSmiles("[C:3][C:2][O:1]")
+    assert mol.GetAtomWithIdx(0).GetSymbol() == "C"
 
+    reordered = Utilities.OrderByMapNumber(mol, clearAtomMapNumbers=False)
+    first = reordered.GetAtomWithIdx(0)
+    assert first.GetSymbol() == "O"
+    assert first.GetAtomMapNum() == 1
+
+    reordered = Utilities.OrderByMapNumber(mol, clearAtomMapNumbers=True)
+    first = reordered.GetAtomWithIdx(0)
+    assert first.GetSymbol() == "O"
+    assert first.GetAtomMapNum() == 0
+    
 
 @pytest.mark.parametrize(
     "core_indices, include_central_atoms, n_neighbors, expected_indices",
@@ -37,14 +39,14 @@ def ordered_molecule():
     ]
 )
 def test_GetAtomNeighborIndices(
-    ordered_molecule,
+    propylparaben,
     core_indices,
     include_central_atoms,
     n_neighbors,
     expected_indices
 ):
-    indices = Utils.GetAtomNeighborIndices(
-        ordered_molecule,
+    indices = Utilities.GetAtomNeighborIndices(
+        propylparaben,
         centralAtomIndices=core_indices,
         includeCentralAtoms=include_central_atoms,
         numAtomNeighbors=n_neighbors
