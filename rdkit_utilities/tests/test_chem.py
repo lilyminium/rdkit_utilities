@@ -1,5 +1,5 @@
 import pytest
-from rdkit_utilities import Chem
+from rdkit_utilities import rdmolfiles
 from rdkit_utilities.tests.datafiles import CCH_PDB
 
 
@@ -7,9 +7,9 @@ from rdkit_utilities.tests.datafiles import CCH_PDB
     ("[C:3][C:2][H:1]", 2, 3),
 ])
 def test_MolFromSmiles(smiles, n_heavy_atoms, n_all_atoms):
-    heavy_mol = Chem.MolFromSmiles(smiles)
+    heavy_mol = rdmolfiles.MolFromSmiles(smiles)
     assert heavy_mol.GetNumAtoms() == n_heavy_atoms
-    all_mol = Chem.MolFromSmiles(smiles, removeHs=False)
+    all_mol = rdmolfiles.MolFromSmiles(smiles, removeHs=False)
     assert all_mol.GetNumAtoms() == n_all_atoms
 
 
@@ -23,7 +23,7 @@ def test_MolFromSmiles(smiles, n_heavy_atoms, n_all_atoms):
     ]
 )
 def test_MolFromSmarts(orderByMapNumber, clearAtomMapNumbers, firstElement, firstNum):
-    rdmol = Chem.MolFromSmarts(
+    rdmol = rdmolfiles.MolFromSmarts(
         "[C:3][C:2][H:1]",
         orderByMapNumber=orderByMapNumber,
         clearAtomMapNumbers=clearAtomMapNumbers,
@@ -48,7 +48,7 @@ def test_MolFromSmarts(orderByMapNumber, clearAtomMapNumbers, firstElement, firs
     ]
 )
 def test_mol_from_input(mol_format, mol_input, order_atoms, map_number):
-    rdmol = Chem.MolFromInput(mol_input, inputFormat=mol_format,
-                              orderByMapNumber=order_atoms)
+    rdmol = rdmolfiles.MolFromInput(mol_input, inputFormat=mol_format,
+                                    orderByMapNumber=order_atoms)
     first = rdmol.GetAtomWithIdx(0)
     assert first.GetAtomMapNum() == map_number

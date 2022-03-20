@@ -62,7 +62,7 @@ def OrderByMapNumber(
     clearAtomMapNumbers: bool = True,
 ) -> rdChem.Mol:
     """
-    Reorder RDKit molecule by atom map number
+    Reorder RDKit molecule by atom map number. This returns a copy.
 
     Parameters
     ----------
@@ -96,3 +96,12 @@ def OrderByMapNumber(
         for atom in reordered.GetAtoms():
             atom.SetAtomMapNum(0)
     return reordered
+
+
+def ReorderConformers(mol: rdChem.Mol, order: Union[List[int], np.ndarray]):
+    conformers = list(mol.GetConformers())
+    mol.RemoveAllConformers()
+    for new_index, current_index in enumerate(order):
+        conformer = conformers[current_index]
+        conformer.SetId(int(new_index))
+        mol.AddConformer(conformer)

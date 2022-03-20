@@ -1,22 +1,22 @@
 import pytest
 
-from rdkit_utilities import Chem, Utilities
+from rdkit_utilities import rdmolfiles, rdmolops
 
 
 def test_OrderByMapNumber():
-    mol = Chem.MolFromSmiles("[C:3][C:2][O:1]")
+    mol = rdmolfiles.MolFromSmiles("[C:3][C:2][O:1]")
     assert mol.GetAtomWithIdx(0).GetSymbol() == "C"
 
-    reordered = Utilities.OrderByMapNumber(mol, clearAtomMapNumbers=False)
+    reordered = rdmolops.OrderByMapNumber(mol, clearAtomMapNumbers=False)
     first = reordered.GetAtomWithIdx(0)
     assert first.GetSymbol() == "O"
     assert first.GetAtomMapNum() == 1
 
-    reordered = Utilities.OrderByMapNumber(mol, clearAtomMapNumbers=True)
+    reordered = rdmolops.OrderByMapNumber(mol, clearAtomMapNumbers=True)
     first = reordered.GetAtomWithIdx(0)
     assert first.GetSymbol() == "O"
     assert first.GetAtomMapNum() == 0
-    
+
 
 @pytest.mark.parametrize(
     "core_indices, include_central_atoms, n_neighbors, expected_indices",
@@ -45,7 +45,7 @@ def test_GetAtomNeighborIndices(
     n_neighbors,
     expected_indices
 ):
-    indices = Utilities.GetAtomNeighborIndices(
+    indices = rdmolops.GetAtomNeighborIndices(
         propylparaben,
         centralAtomIndices=core_indices,
         includeCentralAtoms=include_central_atoms,

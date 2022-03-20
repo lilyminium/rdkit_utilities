@@ -5,7 +5,7 @@ import os
 from typing import Optional
 
 from rdkit.Chem.rdmolfiles import *  # type: ignore
-from rdkit_utilities._Chem import *
+from rdkit_utilities._io._rdmolfiles import *
 
 CONTENT_PARSERS = {
     "fasta": MolFromFASTA,

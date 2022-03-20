@@ -10,6 +10,7 @@ __all__ = [
     "MolFromSmarts",
 ]
 
+
 @reorder_constructed_molecule
 def MolFromSmiles(
     smiles: str,
