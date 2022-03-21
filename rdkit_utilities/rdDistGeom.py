@@ -229,7 +229,7 @@ def SelectDiverseConformers(
     """
     from .rdMolAlign import GetBestConformerRMS
     from .rdmolops import KeepConformerIds
-    from .utils import get_maximally_diverse_indices
+    from ._utils import get_maximally_diverse_indices
 
     rms_matrix = GetBestConformerRMS(mol, heavyAtomsOnly=True)
     diverse_indices = get_maximally_diverse_indices(
@@ -335,13 +335,13 @@ def CalculateElectrostaticEnergy(
     forcefield: Literal["MMFF94", "MMFF94s"] = "MMFF94",
 ) -> np.ndarray:
     """Calculate electrostatic energy of all conformers using force field
-    
+
     Returns
     -------
     energies: numpy.ndarray
         Array of energies, one for each conformer
     """
-    from .utils import compute_atom_distance_matrix
+    from ._utils import compute_atom_distance_matrix
 
     conformers = np.array([c.GetPositions() for c in mol.GetConformers()])
     distances = compute_atom_distance_matrix(conformers)
@@ -381,7 +381,7 @@ def RemoveConformersOutsideEnergyWindow(
     ffIgnoreInterfragInteractions: bool = True,
 ) -> int:
     """Remove conformers outside energy window using force field, in-place
-    
+
     The window covers an energy range from the conformer with the lowest
     energy. The molecule also has its conformers sorted by force field
     energy.
