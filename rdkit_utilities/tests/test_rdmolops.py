@@ -1,5 +1,8 @@
 import pytest
 
+import numpy as np
+from numpy.testing import assert_allclose
+
 from rdkit_utilities import rdmolfiles, rdmolops
 
 
@@ -52,3 +55,34 @@ def test_GetAtomNeighborIndices(
         numAtomNeighbors=n_neighbors
     )
     assert indices == expected_indices
+
+
+@pytest.fixture()
+def mol_with_conformers():
+    from rdkit_utilities.rdchem import AddConformerWithCoordinates
+    mol = rdmolfiles.MolFromSmarts("[O]=[C]=[O]")
+    coords = np.zeros((3, 3), dtype=float)
+    for i in range(10):
+        AddConformerWithCoordinates(mol, coords + i)
+    return mol
+
+
+def test_ReorderConformers(mol_with_conformers):
+    conf = mol_with_conformers.GetConformer(0)
+    assert_allclose(np.array(conf.GetPositions())[0], [0, 0, 0])
+    assert conf.GetId() == 0
+
+    order = [4, 2, 1, 0, 3, 5, 6, 7, 8, 9]
+    rdmolops.ReorderConformers(mol_with_conformers, order)
+    conf = mol_with_conformers.GetConformer(0)
+    assert_allclose(np.array(conf.GetPositions())[0], [4, 4, 4])
+    assert conf.GetId() == 0
+
+
+def test_KeepConformerIds(mol_with_conformers):
+    rdmolops.KeepConformerIds(mol_with_conformers, [1, 0, 3, 5, 6, 7])
+    conformer_ids = [
+        conf.GetId()
+        for conf in mol_with_conformers.GetConformers()
+    ]
+    assert conformer_ids == [0, 1, 3, 5, 6, 7]

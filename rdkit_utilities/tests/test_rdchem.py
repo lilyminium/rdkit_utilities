@@ -1,4 +1,8 @@
+import re
 import pytest
+
+import numpy as np
+from numpy.testing import assert_allclose
 
 from rdkit import Chem as rdChem
 from rdkit_utilities import rdchem, rdmolfiles
@@ -20,3 +24,26 @@ def test_GetSymmetricAtomIndices(smarts, indices):
                                    clearAtomMapNumbers=True)
     rdChem.SanitizeMol(mol)
     assert rdchem.GetSymmetricAtomIndices(mol) == indices
+
+
+def test_AddConformerWithCoordinates(propylparaben):
+    assert propylparaben.GetNumConformers() == 0
+    coordinates = np.ones((25, 3))
+    rdchem.AddConformerWithCoordinates(propylparaben, coordinates)
+    assert propylparaben.GetNumConformers() == 1
+    rdcoords = propylparaben.GetConformer(0).GetPositions()
+    assert_allclose(np.array(rdcoords), coordinates)
+
+
+def test_AddConformerWithCoordinates_error(propylparaben):
+    assert propylparaben.GetNumConformers() == 0
+    coordinates = np.ones((24, 3))
+
+    err = (
+        "Shape of coordinates must be (25, 3). "
+        "Given array with shape (24, 3)"
+    )
+
+    with pytest.raises(ValueError, match=re.escape(err)):
+        rdchem.AddConformerWithCoordinates(propylparaben, coordinates)
+    assert propylparaben.GetNumConformers() == 0

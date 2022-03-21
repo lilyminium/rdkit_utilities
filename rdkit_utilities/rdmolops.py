@@ -99,9 +99,16 @@ def OrderByMapNumber(
 
 
 def ReorderConformers(mol: rdChem.Mol, order: Union[List[int], np.ndarray]):
-    conformers = list(mol.GetConformers())
+    conformers = [rdChem.Conformer(x) for x in mol.GetConformers()]
     mol.RemoveAllConformers()
     for new_index, current_index in enumerate(order):
         conformer = conformers[current_index]
         conformer.SetId(int(new_index))
         mol.AddConformer(conformer)
+
+
+def KeepConformerIds(mol: rdChem.Mol, confIds: Union[List[int], np.ndarray]):
+    conf_ids = [conf.GetId() for conf in mol.GetConformers()]
+    to_remove = [x for x in conf_ids if x not in confIds]
+    for confid in to_remove[::-1]:
+        mol.RemoveConformer(confid)
