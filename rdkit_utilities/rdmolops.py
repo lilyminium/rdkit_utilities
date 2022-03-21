@@ -98,16 +98,36 @@ def OrderByMapNumber(
     return reordered
 
 
-def ReorderConformers(mol: rdChem.Mol, order: Union[List[int], np.ndarray]):
+def ReorderConformers(
+    mol: rdChem.Mol,
+    order: Union[List[int], np.ndarray],
+    resetConfId: bool = True
+):
+    """Reorder conformers in-place by `order`
+
+    Parameters
+    ----------
+    mol: rdkit.Chem.Mol
+        Molecule of interest
+    order: Union[List[int], np.ndarray]
+        New order. This should be indexed from 0,
+        and is typically the output of `np.argsort`.
+        If an index is not present in this list,
+        the associated conformer is removed from the molecule.
+    resetConfId: bool
+        Whether to reset the conformer ID so they are sequential.
+    """
     conformers = [rdChem.Conformer(x) for x in mol.GetConformers()]
     mol.RemoveAllConformers()
     for new_index, current_index in enumerate(order):
         conformer = conformers[current_index]
-        conformer.SetId(int(new_index))
+        if resetConfId:
+            conformer.SetId(int(new_index))
         mol.AddConformer(conformer)
 
 
 def KeepConformerIds(mol: rdChem.Mol, confIds: Union[List[int], np.ndarray]):
+    """Remove conformers from `mol` except those in `confIds`"""
     conf_ids = [conf.GetId() for conf in mol.GetConformers()]
     to_remove = [x for x in conf_ids if x not in confIds]
     for confid in to_remove[::-1]:

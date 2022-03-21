@@ -5,7 +5,11 @@ dependencies:
     # Base depends
   - python
   - pip
+
+  # package
+  - numpy
   - rdkit
+  - typing_extensions
 
 
     # Pip-only installs

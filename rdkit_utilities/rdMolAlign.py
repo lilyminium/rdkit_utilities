@@ -10,6 +10,26 @@ def GetBestConformerRMS(
     heavyAtomsOnly: bool = False,
     confIds: Optional[List[int]] = None
 ) -> np.ndarray:
+    """Get square array of conformer-to-conformer symmetric RMS
+
+    Parameters
+    ----------
+    mol: rdkit.Chem.Mol
+        Molecule of interest
+    heavyAtomsOnly: bool
+        If True, all hydrogens are removed before calculating RMS.
+        This is done on a copy to avoid changing the molecule
+    confIds: Optional[List[int]]
+        If given, the RMS calculation is limited to these conformer IDs.
+        If not, all conformers are used.
+
+    Returns
+    -------
+    rms: numpy.ndarray
+        Square array of RMS from each conformer to each other.
+        This is ordered by the input `confIds` if given, or
+        by the order of the conformers on the molecule if `confIds=None`.
+    """
     from rdkit.Chem import rdMolAlign
 
     if confIds is None:

@@ -13,11 +13,10 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
 # Incase the project was not installed
+import rdkit_utilities
 import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
-
-import rdkit_utilities
 
 
 # -- Project information -----------------------------------------------------
@@ -27,11 +26,10 @@ copyright = ("2022, Lily Wang. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.5")
 author = 'Lily Wang'
 
-# The short X.Y version
-version = ''
 # The full version, including alpha/beta/rc tags
-release = ''
-
+release = rdkit_utilities.__version__
+# The short X.Y version
+version = ".".join(release.split(".")[:2])
 
 # -- General configuration ---------------------------------------------------
 
@@ -52,7 +50,8 @@ extensions = [
     'sphinx.ext.extlinks',
 ]
 
-autosummary_generate = True
+# autosummary_generate = True
+autodoc_typehints = "description"
 napoleon_google_docstring = False
 napoleon_use_param = False
 napoleon_use_ivar = True

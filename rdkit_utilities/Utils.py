@@ -24,6 +24,18 @@ def reorder_constructed_molecule(func):
 
 
 def compute_atom_distance_matrix(coordinates: np.ndarray) -> np.ndarray:
+    """Compute atom-to-atom distance for each conformer
+
+    Parameters
+    ----------
+    coordinates: numpy.ndarray
+        3D matrix of coordinates, with shape (n_conformers, n_atoms, 3)
+
+    Returns
+    -------
+    distances: numpy.ndarray
+        3D matrix of distances, with shape (n_conformers, n_atoms, n_atoms)
+    """
     dist_sq = np.einsum('ijk,ilk->ijl', coordinates, coordinates)
     diag = np.einsum("ijj->ij", dist_sq)
     a, b = diag.shape
@@ -37,6 +49,24 @@ def get_maximally_diverse_indices(
     distance_threshold: float = 0.05,
     n_indices: Optional[int] = None,
 ) -> List[int]:
+    """Greedily select maximally diverse indices from distance_matrix
+
+    Parameters
+    ----------
+    distance_matrix: numpy.ndarray
+        2D square distance matrix with shape (n_items, n_items)
+    distance_threshold: float
+        If any item is below this threshold to any other item,
+        they are considered too similar and only one will be included
+        in the output
+    n_indices: int
+        Number of items to output
+
+    Returns
+    -------
+    indices: List[int]
+        List of indices of maximally diverse items.
+    """
     n_distances = len(distance_matrix)
     if distance_matrix.shape != (n_distances, n_distances):
         raise ValueError("`distance_matrix` should be square distance matrix")

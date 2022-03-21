@@ -27,6 +27,16 @@ def MolFromSmiles(
     """
     Create a molecule from a SMILES string.
 
+    Parameters
+    ----------
+    smiles: str
+    orderByMapNumber: bool
+        Whether to reorder the molecule by atom map number
+    clearAtomMapNumbers: bool
+        Whether to remove / set all atom map numbers to 0
+    **kwargs
+        Passed to rdkit.Chem.SmilesParserParams
+
     Example
     -------
 
@@ -61,6 +71,17 @@ def MolFromSmarts(
 ) -> Optional[rdChem.Mol]:
     """
     Create a molecule from a SMARTS string.
+
+    Parameters
+    ----------
+    smarts: str
+    orderByMapNumber: bool
+        Whether to reorder the molecule by atom map number
+    clearAtomMapNumbers: bool
+        Whether to remove / set all atom map numbers to 0
+    **kwargs
+        Passed to rdkit.Chem.SmilesParserParams
+
     """
     mol = rdChem.MolFromSmarts(smarts,
                                mergeHs=mergeHs,

@@ -1,3 +1,7 @@
+"""
+Functions to do with molecules that are analogous to rdkit.Chem.rdchem.
+"""
+
 from typing import List, Tuple
 
 from rdkit import Chem as rdChem
@@ -8,6 +12,7 @@ def AddConformerWithCoordinates(
     mol: rdChem.Mol,
     coordinates: np.ndarray,
 ) -> int:
+    """Add conformer to molecule with coordinates in angstrom"""
     from rdkit import Geometry
     n_atoms = mol.GetNumAtoms()
     coord_type = np.asarray(coordinates)
@@ -28,6 +33,15 @@ def GetSymmetricAtomIndices(
     mol: rdChem.Mol,
     maxMatches: int = 10000,
 ) -> List[Tuple[int, ...]]:
+    """Get atom indices of symmetric atoms
+
+    Returns
+    -------
+    symmetric_indices: List[Tuple[int, ...]]
+        In this list, one item is a sorted tuple of indices,
+        where each index indicates an atom that is symmetric
+        to all the other indices in the tuple.
+    """
     # take care of resonance
     matches = [
         match
