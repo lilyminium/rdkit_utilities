@@ -11,6 +11,13 @@ except ImportError:
         "Please install it with `conda install -c conda-forge rdkit`."
     )
 
+from .rdchem import *
+from .rdDistGeom import *
+from .rdForceFieldHelpers import *
+from .rdMolAlign import *
+from .rdmolfiles import *
+from .rdmolops import *
+
 # Handle versioneer
 from ._version import get_versions
 versions = get_versions()

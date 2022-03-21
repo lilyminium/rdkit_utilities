@@ -11,6 +11,7 @@ from rdkit_utilities import rdForceFieldHelpers
 
 
 def GetExclusions(mol: rdChem.Mol) -> Set[Tuple[int, int]]:
+    """Get exclusions with a molecule between atoms 2- and 3- sites away"""
     exclusions = set()
     for i, atom in enumerate(mol.GetAtoms()):
         partners = [b.GetOtherAtomIdx(i) for b in atom.GetBonds()]
@@ -53,6 +54,7 @@ def GenerateConformers(
     ffVdwThresh: float = 10.0,
     ffNonBondedThresh: float = 100,
     ffIgnoreInterfragInteractions: bool = True,
+    removeTransAcidConformers: bool = True,
 ) -> List[int]:
     """
     Generate conformers on molecule in-place.
@@ -103,10 +105,7 @@ def GenerateConformers(
         ``rdkit.Chem.rdDistGeom.EmbedMultipleConfs``
         for more.
     """
-
     from .rdmolops import KeepConformerIds
-    from .rdMolAlign import GetBestConformerRMS
-    from .utils import get_maximally_diverse_indices
 
     if not numConfPool:
         numConfPool = numConfs
@@ -162,26 +161,104 @@ def GenerateConformers(
         )
 
     if selectELFConfs:
-        SortConformersByElectrostaticInteraction(mol)
-        goal = int(mol.GetNumConformers() * ELFPercentage / 100)
-        n_keep = max(numConfs, goal)
-        conformer_ids = [c.GetId() for c in mol.GetConformers()]
-        keep_ids = conformer_ids[:n_keep]
-        KeepConformerIds(mol, keep_ids)
+        SelectELFConformers(
+            mol,
+            ELFPercentage=ELFPercentage,
+            removeTransAcidConformers=removeTransAcidConformers,
+        )
 
     if maximiseDiversity:
-        rms_matrix = GetBestConformerRMS(mol, heavyAtomsOnly=True)
-        diverse_indices = get_maximally_diverse_indices(
-            rms_matrix,
-            distance_threshold=diverseRmsThresh,
-            n_indices=numConfs
-        )
-        conformer_ids = [conf.GetId() for conf in mol.GetConformers()]
-        keep_ids = [conformer_ids[i] for i in diverse_indices]
-        KeepConformerIds(mol, keep_ids)
+        SelectDiverseConformers(mol, numConfs=numConfs, diverseRmsThresh=diverseRmsThresh)
 
     KeepConformerIds(mol, np.arange(numConfs))
     return mol.GetNumConformers()
+
+
+def RemoveTransAcidConformers(mol: rdChem.Mol):
+    """Remove conformers from molecule if they contain a trans carboxylic acid"""
+    from rdkit.Chem.rdMolTransforms import GetDihedralRad  # type: ignore[import]
+    from rdkit_utilities import rdmolfiles
+    from .rdmolops import KeepConformerIds
+
+    query = rdmolfiles.MolFromSmarts(
+        "[#6X3:2](=[#8:1])(-[#8X2H1:3]-[#1:4])",
+        orderByMapNumber=True,
+    )
+    matches = mol.GetSubstructMatches(query, uniquify=False)
+    to_keep = []
+    for conformer in mol.GetConformers():
+        for match in matches:
+            angle = GetDihedralRad(conformer, *match)
+            if angle > np.pi / 2.0:
+                break
+        else:
+            to_keep.append(conformer.GetId())
+    KeepConformerIds(mol, to_keep)
+
+
+def SelectELFConformers(
+    mol: rdChem.Mol,
+    ELFPercentage: float = 2.0,
+    removeTransAcidConformers: bool = True
+):
+    """Keep percentage of conformers, ranked by electrostatic energy, in-place.
+
+    The other conformers are deleted.
+    """
+    from .rdmolops import KeepConformerIds
+
+    if removeTransAcidConformers:
+        RemoveTransAcidConformers(mol)
+
+    SortConformersByElectrostaticInteraction(mol)
+    goal = int(mol.GetNumConformers() * ELFPercentage / 100)
+    n_keep = max(1, goal)
+    conformer_ids = [c.GetId() for c in mol.GetConformers()]
+    keep_ids = conformer_ids[:n_keep]
+    KeepConformerIds(mol, keep_ids)
+
+
+def SelectDiverseConformers(
+    mol: rdChem.Mol,
+    numConfs: int = 10,
+    diverseRmsThresh: float = 0.05,
+):
+    """Select conformers for max diversity by RMS, in-place.
+
+    This uses a greedy algorithm. Unselected conformers are deleted.
+    """
+    from .rdMolAlign import GetBestConformerRMS
+    from .rdmolops import KeepConformerIds
+    from .utils import get_maximally_diverse_indices
+
+    rms_matrix = GetBestConformerRMS(mol, heavyAtomsOnly=True)
+    diverse_indices = get_maximally_diverse_indices(
+        rms_matrix,
+        distance_threshold=diverseRmsThresh,
+        n_indices=numConfs
+    )
+    conformer_ids = [conf.GetId() for conf in mol.GetConformers()]
+    keep_ids = [conformer_ids[i] for i in diverse_indices]
+    KeepConformerIds(mol, keep_ids)
+
+
+def SelectDiverseELFConformers(
+    mol: rdChem.Mol,
+    numConfs: int = 10,
+    ELFPercentage: float = 2.0,
+    diverseRmsThresh: float = 0.05,
+    removeTransAcidConformers: bool = True
+):
+    """Select diverse conformers using the ELF technique, in-place.
+
+    Other conformers are deleted from the molecule.
+    """
+    SelectELFConformers(
+        mol,
+        ELFPercentage=ELFPercentage,
+        removeTransAcidConformers=removeTransAcidConformers,
+    )
+    SelectDiverseConformers(mol, numConfs=numConfs, diverseRmsThresh=diverseRmsThresh)
 
 
 def SortConformersByEnergy(
@@ -193,6 +270,17 @@ def SortConformersByEnergy(
     ffIgnoreInterfragInteractions: bool = True,
     reverse: bool = False
 ) -> List[float]:
+    """Sort conformers in-place on molecule by force field energy.
+
+    Returns
+    -------
+    energies: List[float]
+
+    Raises
+    ------
+    ValueError
+        If the force field cannot calculate energies
+    """
     from .rdmolops import ReorderConformers
 
     result = rdForceFieldHelpers.FFOptimizeMoleculeConfs(
@@ -223,6 +311,7 @@ def CalculateMMFFCharges(
     forcefield: Literal["MMFF94", "MMFF94s"] = "MMFF94",
     normalize_partial_charges: bool = True,
 ) -> np.ndarray:
+    """Calculate MMFF charges for molecule"""
     forcefield = forcefield.upper()
     if forcefield == "MMFF94S":
         forcefield = "MMFF94s"
@@ -245,10 +334,17 @@ def CalculateElectrostaticEnergy(
     mol: rdChem.Mol,
     forcefield: Literal["MMFF94", "MMFF94s"] = "MMFF94",
 ) -> np.ndarray:
-    from .utils import compute_distance_matrix
+    """Calculate electrostatic energy of all conformers using force field
+
+    Returns
+    -------
+    energies: numpy.ndarray
+        Array of energies, one for each conformer
+    """
+    from .utils import compute_atom_distance_matrix
 
     conformers = np.array([c.GetPositions() for c in mol.GetConformers()])
-    distances = compute_distance_matrix(conformers)
+    distances = compute_atom_distance_matrix(conformers)
     inverse_distances = np.reciprocal(distances,
                                       out=np.zeros_like(distances),
                                       where=~np.isclose(distances, 0))
@@ -268,6 +364,7 @@ def SortConformersByElectrostaticInteraction(
     mol: rdChem.Mol,
     forcefield: Literal["MMFF94", "MMFF94s"] = "MMFF94",
 ):
+    """Sort conformers in-place by electrostatic energy using MMFF"""
     from .rdmolops import ReorderConformers
     energies = CalculateElectrostaticEnergy(mol, forcefield)
     order = np.argsort(energies)
@@ -283,6 +380,17 @@ def RemoveConformersOutsideEnergyWindow(
     ffNonBondedThresh: float = 100,
     ffIgnoreInterfragInteractions: bool = True,
 ) -> int:
+    """Remove conformers outside energy window using force field, in-place
+
+    The window covers an energy range from the conformer with the lowest
+    energy. The molecule also has its conformers sorted by force field
+    energy.
+
+    Returns
+    -------
+    numConfs: int
+        The number of remaining conformers
+    """
     from .rdmolops import KeepConformerIds
 
     if energyWindow < 0:

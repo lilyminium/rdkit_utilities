@@ -3,10 +3,11 @@ from typing_extensions import Literal
 
 from rdkit import Chem as rdChem
 from rdkit.Chem import rdForceFieldHelpers as rdFF
+from rdkit.ForceField.rdForceField import ForceField as RDForceField
 
 RDKIT_FF_NAMES = ["UFF", "MMFF", "MMFF94", "MMFF94S"]
 RDKIT_FF_NAME_TYPE = Literal[(*RDKIT_FF_NAMES,)]
-RDKIT_FF_TYPE = Union[rdFF.ForceField, RDKIT_FF_NAME_TYPE]
+RDKIT_FF_TYPE = Union[RDForceField, RDKIT_FF_NAME_TYPE]
 
 
 def GetMoleculeForceField(
@@ -16,7 +17,7 @@ def GetMoleculeForceField(
     vdwThresh: float = 10.0,
     nonBondedThresh: float = 100.0,
     confId: int = -1,
-) -> rdFF.ForceField:
+) -> RDForceField:
     """Get molecule force field with string
 
     Parameters
@@ -74,7 +75,7 @@ def GetMoleculeForceField(
             f"for given molecule: {rdChem.MolToSmarts(mol)}"
         )
     molprops = rdFF.MMFFGetMoleculeProperties(mol, mmffVariant=forcefield)
-    return rdFF.GetMoleculeForceField(
+    return rdFF.MMFFGetMoleculeForceField(
         mol, molprops,
         nonBondedThresh=nonBondedThresh,
         confId=confId,
@@ -130,7 +131,7 @@ def FFOptimizeMolecule(
             ignoreInterfragInteractions=ignoreInterfragInteractions
         )
 
-    return rdFF.OptimizeMolecules(forcefield, maxIters=maxIters)
+    return rdFF.OptimizeMolecule(forcefield, maxIters=maxIters)
 
 
 def FFOptimizeMoleculeConfs(
@@ -189,6 +190,7 @@ def FFOptimizeMoleculeConfs(
         )
 
     return rdFF.OptimizeMoleculeConfs(
+        mol,
         forcefield,
         maxIters=maxIters,
         numThreads=numThreads,

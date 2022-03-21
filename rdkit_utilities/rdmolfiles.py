@@ -10,7 +10,6 @@ from rdkit import Chem as rdChem
 
 from ._io._rdmolfiles import *
 from ._io._parser import ALL_RDKIT_PARSERS, molecule_from_input
-from rdkit_utilities.utils import reorder_constructed_molecule
 
 
 @reorder_constructed_molecule
@@ -22,6 +21,26 @@ def MolFromInput(
     clearAtomMapNumbers: bool = False,
     **kwargs,
 ) -> Optional[rdChem.Mol]:
+    """Construct RDKit Mol from input with optional format.
+
+    This accepts any input that RDKit can parse, and looks for the
+    appropriate function to load the data.
+
+    Parameters
+    ----------
+    molInput: str
+        Molecule data or filename
+    *args
+        Passed to the RDKit parsing function
+    inputFormat
+        Format of `molInput`. If not given, it's guessed from
+        the extension of the filename, or all of RDKit's content
+        parsers are tried one-by-one.
+    orderByMapNumber: bool
+        Whether to reorder the molecule by atom map number
+    clearAtomMapNumbers: bool
+        Whether to remove / set all atom map numbers to 0 
+    """
     return molecule_from_input(
         molInput,
         *args,

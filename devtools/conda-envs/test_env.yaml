@@ -17,6 +17,7 @@ dependencies:
     # package
   - numpy
   - rdkit
+  - typing_extensions
 
     # Pip-only installs
   #- pip:

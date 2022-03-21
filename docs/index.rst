@@ -6,12 +6,16 @@
 Welcome to rdkit_utilities's documentation!
 =========================================================
 
+This package contains useful functions to modify or extend RDKit.
+
+Basically just stuff I found myself doing over and over again.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    getting_started
-   api
+   api/README
 
 
 

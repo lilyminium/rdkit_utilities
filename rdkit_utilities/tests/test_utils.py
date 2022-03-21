@@ -3,10 +3,9 @@ import pytest
 import numpy as np
 from numpy.testing import assert_allclose
 
-from rdkit_utilities import utils
-
 
 def test_compute_distance_matrix():
+    from rdkit_utilities import utils
     arr = np.arange(24).reshape((2, 4, 3))
     rms = utils.compute_atom_distance_matrix(arr)
     assert rms.shape == (2, 4, 4)
@@ -28,6 +27,7 @@ def test_compute_distance_matrix():
     (5.4, 4, [0, 3, 1]),
 ])
 def test_get_maximally_diverse_indices(threshold, n_indices, indices):
+    from rdkit_utilities import utils
     arr = np.array([
         [ 0.         , 5.49615242 ,10.39230485 ,15.58845727],
         [ 5.49615242 , 0.         , 5.19615242 ,10.39230485],

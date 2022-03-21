@@ -1,14 +1,33 @@
+import functools
 from typing import Optional, Dict
 
 from rdkit import Chem as rdChem
 
 
-from rdkit_utilities.utils import reorder_constructed_molecule
-
 __all__ = [
+    "reorder_constructed_molecule",
     "MolFromSmiles",
     "MolFromSmarts",
 ]
+
+
+def reorder_constructed_molecule(func):
+    @functools.wraps(func)
+    def wrapper(
+        *args,
+        orderByMapNumber: bool = False,
+        clearAtomMapNumbers: bool = False,
+        **kwargs
+    ):
+        mol = func(*args, **kwargs)
+        if orderByMapNumber and mol is not None:
+            from rdkit_utilities.rdmolops import OrderByMapNumber
+            mol = OrderByMapNumber(mol, clearAtomMapNumbers=clearAtomMapNumbers)
+        elif clearAtomMapNumbers:
+            for atom in mol.GetAtoms():
+                atom.SetAtomMapNum(0)
+        return mol
+    return wrapper
 
 
 @reorder_constructed_molecule
@@ -26,6 +45,16 @@ def MolFromSmiles(
 ) -> Optional[rdChem.Mol]:
     """
     Create a molecule from a SMILES string.
+
+    Parameters
+    ----------
+    smiles: str
+    orderByMapNumber: bool
+        Whether to reorder the molecule by atom map number
+    clearAtomMapNumbers: bool
+        Whether to remove / set all atom map numbers to 0
+    **kwargs
+        Passed to rdkit.Chem.SmilesParserParams
 
     Example
     -------
@@ -61,6 +90,17 @@ def MolFromSmarts(
 ) -> Optional[rdChem.Mol]:
     """
     Create a molecule from a SMARTS string.
+
+    Parameters
+    ----------
+    smarts: str
+    orderByMapNumber: bool
+        Whether to reorder the molecule by atom map number
+    clearAtomMapNumbers: bool
+        Whether to remove / set all atom map numbers to 0
+    **kwargs
+        Passed to rdkit.Chem.SmilesParserParams
+
     """
     mol = rdChem.MolFromSmarts(smarts,
                                mergeHs=mergeHs,
