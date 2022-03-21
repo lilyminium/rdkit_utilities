@@ -1,14 +1,33 @@
+import functools
 from typing import Optional, Dict
 
 from rdkit import Chem as rdChem
 
 
-from rdkit_utilities.utils import reorder_constructed_molecule
-
 __all__ = [
+    "reorder_constructed_molecule",
     "MolFromSmiles",
     "MolFromSmarts",
 ]
+
+
+def reorder_constructed_molecule(func):
+    @functools.wraps(func)
+    def wrapper(
+        *args,
+        orderByMapNumber: bool = False,
+        clearAtomMapNumbers: bool = False,
+        **kwargs
+    ):
+        mol = func(*args, **kwargs)
+        if orderByMapNumber and mol is not None:
+            from rdkit_utilities.rdmolops import OrderByMapNumber
+            mol = OrderByMapNumber(mol, clearAtomMapNumbers=clearAtomMapNumbers)
+        elif clearAtomMapNumbers:
+            for atom in mol.GetAtoms():
+                atom.SetAtomMapNum(0)
+        return mol
+    return wrapper
 
 
 @reorder_constructed_molecule

@@ -1,26 +1,6 @@
-import functools
 from typing import Optional, List
 
 import numpy as np
-
-
-def reorder_constructed_molecule(func):
-    @functools.wraps(func)
-    def wrapper(
-        *args,
-        orderByMapNumber: bool = False,
-        clearAtomMapNumbers: bool = False,
-        **kwargs
-    ):
-        mol = func(*args, **kwargs)
-        if orderByMapNumber and mol is not None:
-            from .rdmolops import OrderByMapNumber
-            mol = OrderByMapNumber(mol, clearAtomMapNumbers=clearAtomMapNumbers)
-        elif clearAtomMapNumbers:
-            for atom in mol.GetAtoms():
-                atom.SetAtomMapNum(0)
-        return mol
-    return wrapper
 
 
 def compute_atom_distance_matrix(coordinates: np.ndarray) -> np.ndarray:

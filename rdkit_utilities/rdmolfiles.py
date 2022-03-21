@@ -10,7 +10,6 @@ from rdkit import Chem as rdChem
 
 from ._io._rdmolfiles import *
 from ._io._parser import ALL_RDKIT_PARSERS, molecule_from_input
-from rdkit_utilities.utils import reorder_constructed_molecule
 
 
 @reorder_constructed_molecule
