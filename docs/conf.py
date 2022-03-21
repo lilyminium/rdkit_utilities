@@ -50,7 +50,7 @@ extensions = [
     'sphinx.ext.extlinks',
 ]
 
-# autosummary_generate = True
+autosummary_generate = True
 autodoc_typehints = "description"
 napoleon_google_docstring = False
 napoleon_use_param = False
