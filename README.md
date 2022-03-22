@@ -3,6 +3,7 @@ rdkit_utilities
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/lilyminium/rdkit_utilities/workflows/CI/badge.svg)](https://github.com/lilyminium/rdkit_utilities/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/lilyminium/rdkit_utilities/branch/master/graph/badge.svg)](https://codecov.io/gh/lilyminium/rdkit_utilities/branch/master)
+[![Documentation Status](https://readthedocs.org/projects/rdkit_utilities/badge/?version=latest)](https://rdkit_utilities.readthedocs.io/en/latest/?badge=latest)
 
 Contained here are some helpful RDKit utilities for:
 
