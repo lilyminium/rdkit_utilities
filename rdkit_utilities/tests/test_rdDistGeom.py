@@ -173,7 +173,7 @@ def test_GenerateConformers_options(
     optimizeConfs,
     n_confs
 ):
-    mol = rdChem.AddHs(rdmolfiles.MolFromSmiles("CCCC"))
+    mol = rdChem.AddHs(rdmolfiles.MolFromSmiles("CCCCCC"))
     rdDistGeom.GenerateConformers(
         mol,
         numConfPool=numConfPool,
