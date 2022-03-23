@@ -24,7 +24,7 @@ def GenerateConformers(
     mol: rdChem.Mol,
     numConfs: int = 10,
     numConfPool: Optional[int] = None,
-    maximiseDiversity: bool = False,
+    maximizeDiversity: bool = False,
     selectELFConfs: bool = False,
     ELFPercentage: float = 2.0,
     pruneRmsThresh: float = -1.0,
@@ -66,8 +66,8 @@ def GenerateConformers(
     numConfPool: Optional[int]
         Max number of conformers to initially generate,
         for ELF or RMS selection.
-    maximiseDiversity: bool
-        Whether to maximise diversity via heavy-atom RMS
+    maximizeDiversity: bool
+        Whether to maximize diversity via heavy-atom RMS
     selectELFConfs: bool
         Whether to select conformers using the electrostatically
         least-interacting functional group (ELF) technique
@@ -109,7 +109,7 @@ def GenerateConformers(
 
     if not numConfPool:
         numConfPool = numConfs
-        if maximiseDiversity or energyWindow > 0:
+        if maximizeDiversity or energyWindow > 0:
             numConfPool *= 1000
 
     coordMap = {k: list(map(float, v)) for k, v in coordMap.items()}
@@ -167,10 +167,11 @@ def GenerateConformers(
             removeTransAcidConformers=removeTransAcidConformers,
         )
 
-    if maximiseDiversity:
+    if maximizeDiversity:
         SelectDiverseConformers(mol, numConfs=numConfs, diverseRmsThresh=diverseRmsThresh)
 
-    KeepConformerIds(mol, np.arange(numConfs))
+    conformer_ids = [conf.GetId() for conf in mol.GetConformers()]
+    KeepConformerIds(mol, conformer_ids[:numConfs])
     return mol.GetNumConformers()
 
 
@@ -240,6 +241,8 @@ def SelectDiverseConformers(
     conformer_ids = [conf.GetId() for conf in mol.GetConformers()]
     keep_ids = [conformer_ids[i] for i in diverse_indices]
     KeepConformerIds(mol, keep_ids)
+    for i, conf in enumerate(mol.GetConformers()):
+        conf.SetId(i)
 
 
 def SelectDiverseELFConformers(

@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_allclose
 
 from rdkit_utilities import rdmolfiles, rdchem, rdDistGeom
+from rdkit import Chem as rdChem
 
 
 @pytest.fixture
@@ -152,3 +153,33 @@ def test_GenerateConformers(formic_acid):
     coordinates = np.array(lowest.GetPositions())
     first_coord = [-0.677714,  1.017283,  0.609685]
     assert_allclose(coordinates[0], first_coord, atol=1e-6)
+
+
+@pytest.mark.parametrize(
+    "numConfPool, maximizeDiversity, selectELFConfs, optimizeConfs, n_confs",
+    [
+        (None, False, False, False, 10),
+        (200, False, False, False, 10),
+        (200, False, True, False, 4),
+        (1000, False, True, False, 10),  # 10 selected from 20
+        (200, True, False, False, 10),
+        (10000, True, True, True, 10)
+    ]
+)
+def test_GenerateConformers_options(
+    numConfPool,
+    maximizeDiversity,
+    selectELFConfs,
+    optimizeConfs,
+    n_confs
+):
+    mol = rdChem.AddHs(rdmolfiles.MolFromSmiles("CCCCCC"))
+    rdDistGeom.GenerateConformers(
+        mol,
+        numConfPool=numConfPool,
+        maximizeDiversity=maximizeDiversity,
+        selectELFConfs=selectELFConfs,
+        optimizeConfs=optimizeConfs,
+        diverseRmsThresh=0.01,
+    )
+    assert mol.GetNumConformers() == n_confs
