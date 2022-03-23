@@ -163,7 +163,7 @@ def test_GenerateConformers(formic_acid):
         (200, False, True, False, 4),
         (1000, False, True, False, 10),  # 10 selected from 20
         (200, True, False, False, 10),
-        (1000, True, True, True, 10)
+        (10000, True, True, True, 10)
     ]
 )
 def test_GenerateConformers_options(
@@ -180,5 +180,6 @@ def test_GenerateConformers_options(
         maximizeDiversity=maximizeDiversity,
         selectELFConfs=selectELFConfs,
         optimizeConfs=optimizeConfs,
+        diverseRmsThresh=0.01,
     )
     assert mol.GetNumConformers() == n_confs
