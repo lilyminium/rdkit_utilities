@@ -9,7 +9,7 @@ Contained here are some helpful RDKit utilities for:
 
 * generating conformers
     * ranking by MMFF electrostatic energy (for ELF conformer selection)
-    * selecting to maximise diversity via RMS (for ELF conformer selection)
+    * selecting to maximize diversity via RMS (for ELF conformer selection)
 * finding symmetric atoms in a molecule
 * finding the shell of neighbors around a central fragment, N bonds away
 
