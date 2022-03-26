@@ -2,7 +2,7 @@
 Functions to do with molecules that are analogous to rdkit.Chem.rdchem.
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Union, Dict
 
 from rdkit import Chem as rdChem
 import numpy as np
@@ -51,3 +51,38 @@ def GetSymmetricAtomIndices(
     ]
     atom_symmetries = set(tuple(sorted(set(x))) for x in zip(*matches))
     return sorted([x for x in atom_symmetries if len(x) > 1])
+
+def GetTaggedSubstructMatches(
+    mol: rdChem.Mol,
+    query: rdChem.Mol,
+    uniquify: bool = False,
+    useChirality: bool = False,
+    useQueryQueryMatches: bool = False,
+    maxMatches: int = 1000,
+    mappingAsTaggedDict: bool = False,
+) -> Union[List[Tuple[int, ...]], List[Dict[int, int]]]:
+    """Only return tagged atoms in substruct match, in tag order"""
+    matches = mol.GetSubstructMatches(
+        query,
+        uniquify=uniquify,
+        useChirality=useChirality,
+        useQueryQueryMatches=useQueryQueryMatches,
+        maxMatches=maxMatches
+    )
+    map_numbers = np.array([a.GetAtomMapNum() for a in query.GetAtoms()])
+    not_zero = np.where(map_numbers)[0]
+    matches = [
+        tuple(x for i, x in enumerate(match) if i in not_zero)
+        for match in matches
+    ]
+    matches = sorted(set(matches))
+    map_numbers = map_numbers[not_zero]
+    order = np.argsort(map_numbers)
+    matches = [
+        tuple(match[i] for i in order)
+        for match in matches
+    ]
+    if mappingAsTaggedDict:
+        map_numbers = map_numbers[order]
+        return [dict(zip(map_numbers, match)) for match in matches]
+    return matches
