@@ -86,3 +86,20 @@ def test_KeepConformerIds(mol_with_conformers):
         for conf in mol_with_conformers.GetConformers()
     ]
     assert conformer_ids == [0, 1, 3, 5, 6, 7]
+
+
+@pytest.mark.parametrize(
+    "atom_indices_in, atom_nums_out",
+    [
+        ([], []),
+        ([0, 1], [1, 2]),
+        ([5, 0, 3, 2], [1, 3, 4]),
+        ((3, 4, 4), [4, 5])
+    ]
+)
+def test_SubsetMol(methane, atom_indices_in, atom_nums_out):
+    subset = rdmolops.SubsetMol(methane, atom_indices_in)
+    assert methane.GetNumAtoms() == 5
+
+    subset_nums = [atom.GetAtomMapNum() for atom in subset.GetAtoms()]
+    assert subset_nums == atom_nums_out

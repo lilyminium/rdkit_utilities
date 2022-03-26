@@ -37,15 +37,15 @@ def GetBestConformerRMS(
     n_conformers = len(confIds)
 
     if heavyAtomsOnly:
-        mol = rdChem.RemoveAllHs(mol)
+        mol = rdChem.RemoveHs(mol, sanitize=False)
         rdChem.SanitizeMol(
-                    mol,
-                    rdChem.SANITIZE_ALL
-                    ^ rdChem.SANITIZE_SETAROMATICITY
-                    ^ rdChem.SANITIZE_SETCONJUGATION
-                    ^ rdChem.SANITIZE_SETHYBRIDIZATION
-                    ^ rdChem.SANITIZE_ADJUSTHS,
-                )
+            mol,
+            rdChem.SANITIZE_ALL
+            ^ rdChem.SANITIZE_SETAROMATICITY
+            ^ rdChem.SANITIZE_SETCONJUGATION
+            ^ rdChem.SANITIZE_SETHYBRIDIZATION
+            ^ rdChem.SANITIZE_ADJUSTHS,
+        )
 
     rms = np.zeros((n_conformers, n_conformers))
     for i, j in itertools.combinations(np.arange(n_conformers), 2):
