@@ -2,7 +2,7 @@
 Functions to do with molecules that are analogous to rdkit.Chem.rdchem.
 """
 
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Union, Dict, Any
 
 from rdkit import Chem as rdChem
 import numpy as np
@@ -52,6 +52,7 @@ def GetSymmetricAtomIndices(
     atom_symmetries = set(tuple(sorted(set(x))) for x in zip(*matches))
     return sorted([x for x in atom_symmetries if len(x) > 1])
 
+
 def GetTaggedSubstructMatches(
     mol: rdChem.Mol,
     query: rdChem.Mol,
@@ -86,3 +87,18 @@ def GetTaggedSubstructMatches(
         map_numbers = map_numbers[order]
         return [dict(zip(map_numbers, match)) for match in matches]
     return matches
+
+
+def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, Any]):
+    for key, val in properties.items():
+        # boolean check first, as they are also ints
+        if val is False or val is True or isinstance(val, np.bool_):
+            obj.SetBoolProp(key, bool(val))
+        elif isinstance(val, (int, np.int_)):
+            obj.SetIntProp(key, int(val))
+        elif isinstance(val, (float, np.float_)):
+            obj.SetDoubleProp(key, float(val))
+        elif isinstance(val, str):
+            obj.SetProp(key, val)
+        else:
+            raise ValueError(f"No setter function for {val} of type {type(val)}")

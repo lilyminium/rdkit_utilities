@@ -88,3 +88,32 @@ def test_GetTaggedSubstructMatches(propylparaben, smarts, indices, mapping):
     assert len(as_dict) == len(mapping)
     for mapping_ in mapping:
         assert mapping_ in as_dict
+
+
+def test_SetPropsFromDict():
+    properties = dict(
+        boolean_prop1=True,
+        boolean_prop2=False,
+        integer_prop1=0,
+        integer_prop2=1,
+        integer_prop3=-10,
+        np_int_prop=np.int64(4),
+        float_prop=3.0,
+        np_float_prop=np.float64(12),
+        str_prop="asdf",
+        empty_str_prop="",
+    )
+
+    atom = rdChem.Atom("H")
+    rdchem.SetPropsFromDict(atom, properties)
+    atom_properties = atom.GetPropsAsDict()
+    assert properties == atom_properties
+    for key in properties:
+        assert np.issubdtype(type(properties[key]), type(atom_properties[key]))
+
+    mol = rdChem.MolFromSmiles("CC")
+    rdchem.SetPropsFromDict(mol, properties)
+    mol_properties = mol.GetPropsAsDict()
+    assert properties == mol_properties
+    for key in properties:
+        assert np.issubdtype(type(properties[key]), type(mol_properties[key]))
