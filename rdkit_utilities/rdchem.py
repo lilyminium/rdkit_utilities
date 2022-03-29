@@ -91,14 +91,14 @@ def GetTaggedSubstructMatches(
 
 def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, Any]):
     for key, val in properties.items():
-        # boolean check first, as they are also ints
-        if val is False or val is True or isinstance(val, np.bool_):
+        valtype = type(val)
+        if val is False or val is True or np.issubdtype(valtype, np.bool_):
             obj.SetBoolProp(key, bool(val))
-        elif isinstance(val, (int, np.int_)):
+        elif isinstance(val, (int, np.int_)) or np.issubdtype(valtype, np.int_):
             obj.SetIntProp(key, int(val))
-        elif isinstance(val, (float, np.float_)):
+        elif isinstance(val, (float, np.float_)) or np.issubdtype(valtype, np.float_):
             obj.SetDoubleProp(key, float(val))
-        elif isinstance(val, str):
+        elif isinstance(val, str) or np.issubdtype(valtype, str):
             obj.SetProp(key, val)
         else:
             raise ValueError(f"No setter function for {val} of type {type(val)}")
