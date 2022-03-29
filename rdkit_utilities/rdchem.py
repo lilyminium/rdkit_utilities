@@ -90,6 +90,7 @@ def GetTaggedSubstructMatches(
 
 
 def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, Any]):
+    """Set properties from dict, analogous to GetPropsAsDict()"""
     for key, val in properties.items():
         valtype = type(val)
         if val is False or val is True or np.issubdtype(valtype, np.bool_):
@@ -101,4 +102,4 @@ def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, 
         elif isinstance(val, str) or np.issubdtype(valtype, str):
             obj.SetProp(key, val)
         else:
-            raise ValueError(f"No setter function for {val} of type {type(val)}")
+            raise ValueError(f"No setter function for {val} of type {valtype}")
