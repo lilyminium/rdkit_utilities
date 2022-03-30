@@ -108,12 +108,31 @@ def test_SetPropsFromDict():
     rdchem.SetPropsFromDict(atom, properties)
     atom_properties = atom.GetPropsAsDict()
     assert properties == atom_properties
-    for key in properties:
-        assert np.issubdtype(type(properties[key]), type(atom_properties[key]))
+
+    # manually go through this because in Windows, !np.issubdtype(int64, int)
+    assert type(atom_properties["boolean_prop1"]) is bool
+    assert type(atom_properties["boolean_prop2"]) is bool
+    assert type(atom_properties["integer_prop1"]) is int
+    assert type(atom_properties["integer_prop2"]) is int
+    assert type(atom_properties["integer_prop3"]) is int
+    assert type(atom_properties["np_int_prop"]) is int
+    assert type(atom_properties["float_prop"]) is float
+    assert type(atom_properties["np_float_prop"]) is float
+    assert type(atom_properties["str_prop"]) is str
+    assert type(atom_properties["empty_str_prop"]) is str
 
     mol = rdChem.MolFromSmiles("CC")
     rdchem.SetPropsFromDict(mol, properties)
     mol_properties = mol.GetPropsAsDict()
     assert properties == mol_properties
-    for key in properties:
-        assert np.issubdtype(type(properties[key]), type(mol_properties[key]))
+    
+    assert type(mol_properties["boolean_prop1"]) is bool
+    assert type(mol_properties["boolean_prop2"]) is bool
+    assert type(mol_properties["integer_prop1"]) is int
+    assert type(mol_properties["integer_prop2"]) is int
+    assert type(mol_properties["integer_prop3"]) is int
+    assert type(mol_properties["np_int_prop"]) is int
+    assert type(mol_properties["float_prop"]) is float
+    assert type(mol_properties["np_float_prop"]) is float
+    assert type(mol_properties["str_prop"]) is str
+    assert type(mol_properties["empty_str_prop"]) is str
