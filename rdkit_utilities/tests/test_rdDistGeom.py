@@ -13,7 +13,7 @@ def formic_acid():
         "[H:4][C:2](=[O:1])[O:3][H:5]",
         orderByMapNumber=True,
         removeHs=False,
-        clearAtomMapNumbers=True
+        clearAtomMapNumbers=True,
     )
     return mol
 
@@ -21,30 +21,32 @@ def formic_acid():
 def test_SelectDiverseELFConformers():
     smiles = "[H:6]/[C:1](=[C:2](\\[H:7])/[O:3][H:8])/[C:4](=[O:5])[H:9]"
     mol = rdmolfiles.MolFromSmiles(smiles, orderByMapNumber=True, removeHs=False)
-    conformers = np.array([
+    conformers = np.array(
         [
-            [0.5477, 0.3297, -0.0621],
-            [-0.1168, -0.7881, 0.2329],
-            [-1.4803, -0.8771, 0.1667],
-            [-0.2158, 1.5206, -0.4772],
-            [-1.4382, 1.5111, -0.5580],
-            [1.6274, 0.3962, -0.0089],
-            [0.3388, -1.7170, 0.5467],
-            [-1.8612, -0.0347, -0.1160],
-            [0.3747, 2.4222, -0.7115],
-        ],
-        [
-            [0.5477, 0.3297, -0.0621],
-            [-0.1168, -0.7881, 0.2329],
-            [-1.4803, -0.8771, 0.1667],
-            [-0.2158, 1.5206, -0.4772],
-            [0.3353, 2.5772, -0.7614],
-            [1.6274, 0.3962, -0.0089],
-            [0.3388, -1.7170, 0.5467],
-            [-1.7743, -1.7634, 0.4166],
-            [-1.3122, 1.4082, -0.5180],
+            [
+                [0.5477, 0.3297, -0.0621],
+                [-0.1168, -0.7881, 0.2329],
+                [-1.4803, -0.8771, 0.1667],
+                [-0.2158, 1.5206, -0.4772],
+                [-1.4382, 1.5111, -0.5580],
+                [1.6274, 0.3962, -0.0089],
+                [0.3388, -1.7170, 0.5467],
+                [-1.8612, -0.0347, -0.1160],
+                [0.3747, 2.4222, -0.7115],
+            ],
+            [
+                [0.5477, 0.3297, -0.0621],
+                [-0.1168, -0.7881, 0.2329],
+                [-1.4803, -0.8771, 0.1667],
+                [-0.2158, 1.5206, -0.4772],
+                [0.3353, 2.5772, -0.7614],
+                [1.6274, 0.3962, -0.0089],
+                [0.3388, -1.7170, 0.5467],
+                [-1.7743, -1.7634, 0.4166],
+                [-1.3122, 1.4082, -0.5180],
+            ],
         ]
-    ])
+    )
     for conf in conformers:
         rdchem.AddConformerWithCoordinates(mol, conf)
     assert mol.GetNumConformers() == 2
@@ -151,7 +153,7 @@ def test_GenerateConformers(formic_acid):
 
     lowest = formic_acid.GetConformer(0)
     coordinates = np.array(lowest.GetPositions())
-    first_coord = [-0.677714,  1.017283,  0.609685]
+    first_coord = [-0.677714, 1.017283, 0.609685]
     assert_allclose(coordinates[0], first_coord, atol=1e-6)
 
 
@@ -163,15 +165,11 @@ def test_GenerateConformers(formic_acid):
         (200, False, True, False, 4),
         (1000, False, True, False, 10),  # 10 selected from 20
         (200, True, False, False, 10),
-        (10000, True, True, True, 10)
-    ]
+        (10000, True, True, True, 10),
+    ],
 )
 def test_GenerateConformers_options(
-    numConfPool,
-    maximizeDiversity,
-    selectELFConfs,
-    optimizeConfs,
-    n_confs
+    numConfPool, maximizeDiversity, selectELFConfs, optimizeConfs, n_confs
 ):
     mol = rdChem.AddHs(rdmolfiles.MolFromSmiles("CCCCCC"))
     rdDistGeom.GenerateConformers(

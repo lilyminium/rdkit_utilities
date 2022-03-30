@@ -3,6 +3,8 @@ from typing import List, Set, Union
 import numpy as np
 from rdkit import Chem as rdChem
 
+_RDPROP_ATOM_SMARTS = "_smarts_query"
+
 
 def GetAtomNeighborIndices(
     mol: rdChem.Mol,
@@ -99,9 +101,7 @@ def OrderByMapNumber(
 
 
 def ReorderConformers(
-    mol: rdChem.Mol,
-    order: Union[List[int], np.ndarray],
-    resetConfId: bool = True
+    mol: rdChem.Mol, order: Union[List[int], np.ndarray], resetConfId: bool = True
 ):
     """Reorder conformers in-place by `order`
 
@@ -132,3 +132,101 @@ def KeepConformerIds(mol: rdChem.Mol, confIds: Union[List[int], np.ndarray]):
     to_remove = [x for x in conf_ids if x not in confIds]
     for confid in to_remove[::-1]:
         mol.RemoveConformer(confid)
+
+
+def SubsetMol(mol: rdChem.Mol, atomIndices: List[int]) -> rdChem.Mol:
+    """Return a subset of a molecule, as a copy"""
+    mol = rdChem.RWMol(mol)
+    to_delete = [i for i in range(mol.GetNumAtoms()) if i not in atomIndices]
+    for index in to_delete[::-1]:
+        mol.RemoveAtom(index)
+    mol.UpdatePropertyCache()
+    return rdChem.Mol(mol)
+
+
+def AtomFromQueryAtom(atom: rdChem.QueryAtom) -> rdChem.Atom:
+    """Convert Chem.QueryAtom to Chem.Atom"""
+    # this is a separate function just in case I want to add in future...
+    from .rdchem import SetPropsFromDict
+    new_atom = rdChem.Atom(atom)
+    new_atom.SetProp(_RDPROP_ATOM_SMARTS, atom.GetSmarts())
+    SetPropsFromDict(new_atom, atom.GetPropsAsDict())
+    return new_atom
+
+
+def AtomToQueryAtom(
+    atom: rdChem.Atom,
+    strict: bool = False,
+    includeIsotope: bool = True,
+) -> rdChem.QueryAtom:
+    """Convert Chem.Atom to Chem.QueryAtom"""
+    from rdkit.Chem import rdqueries
+    from .rdchem import SetPropsFromDict
+
+    if atom.HasProp(_RDPROP_ATOM_SMARTS):
+        q = rdChem.AtomFromSmarts(atom.GetProp(_RDPROP_ATOM_SMARTS))
+    else:
+        # this is option #2 because it can infer implicit Hs
+        # that were not originally there
+        atom.UpdatePropertyCache(strict=True)
+        # allHsExplicit is for when it dips to MolToSmiles when Smarts fails
+        q = rdChem.AtomFromSmarts(atom.GetSmarts(allHsExplicit=True))
+
+    q.SetAtomMapNum(atom.GetAtomMapNum())
+
+    # TODO: investigate including other properties
+    # like H count and stuff
+    if includeIsotope:
+        iso = atom.GetIsotope()
+        if strict or iso:
+            qiso = rdqueries.IsotopeEqualsQueryAtom(iso)
+            pattern = qiso.GetSmarts().strip("[]")
+            if pattern not in q.GetSmarts():
+                q.ExpandQuery(qiso)
+
+    props = atom.GetPropsAsDict()
+    SetPropsFromDict(q, props)
+    return q
+
+
+def MolToMolWithAtoms(mol: rdChem.Mol) -> rdChem.Mol:
+    """Convert Mol with QueryAtoms to Mol with Atoms"""
+    normal_mol = rdChem.RWMol(mol)
+    for i, atom in enumerate(mol.GetAtoms()):
+        normal_mol.ReplaceAtom(i, AtomFromQueryAtom(atom))
+    # normal_mol.ClearComputedProperties()
+    return rdChem.Mol(normal_mol)
+
+
+def MolToMolWithQueryAtoms(
+    mol: rdChem.Mol, strict: bool = False, includeIsotopes: bool = True
+) -> rdChem.Mol:
+    """Convert Mol with Atoms to Mol with QueryAtoms"""
+    query_mol = rdChem.RWMol(mol)
+    for i, atom in enumerate(mol.GetAtoms()):
+        q = AtomToQueryAtom(atom, strict=strict, includeIsotope=includeIsotopes)
+        query_mol.ReplaceAtom(i, q)
+    # query_mol.ClearComputedProperties()
+    return rdChem.Mol(query_mol)
+
+
+def MolAsMolWithAtoms(mol: rdChem.Mol) -> rdChem.Mol:
+    """If Mol contains Chem.QueryAtoms, convert to Mol with Chem.Atoms
+
+    If Mol already is composed of Atoms, returns the same object
+    """
+    if not any(isinstance(atom, rdChem.QueryAtom) for atom in mol.GetAtoms()):
+        return mol
+    return MolToMolWithAtoms(mol)
+
+
+def MolAsMolWithQueryAtoms(
+    mol: rdChem.Mol, strict: bool = False, includeIsotopes: bool = True
+) -> rdChem.Mol:
+    """If Mol contains Chem.Atoms, convert to Mol with Chem.QueryAtoms
+
+    If Mol already is composed of QueryAtoms, returns the same object
+    """
+    if all(isinstance(atom, rdChem.QueryAtom) for atom in mol.GetAtoms()):
+        return mol
+    return MolToMolWithQueryAtoms(mol, strict=strict, includeIsotopes=includeIsotopes)

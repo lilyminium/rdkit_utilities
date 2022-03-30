@@ -135,7 +135,7 @@ def GenerateConformers(
         printExpTorsionAngles=printExpTorsionAngles,
         useSmallRingTorsions=useSmallRingTorsions,
         useMacrocycleTorsions=useMacrocycleTorsions,
-        ETversion=ETversion
+        ETversion=ETversion,
     )
 
     if optimizeConfs:
@@ -157,7 +157,7 @@ def GenerateConformers(
             numThreads=numThreads,
             ffVdwThresh=ffVdwThresh,
             ffNonBondedThresh=ffNonBondedThresh,
-            ffIgnoreInterfragInteractions=ffIgnoreInterfragInteractions
+            ffIgnoreInterfragInteractions=ffIgnoreInterfragInteractions,
         )
 
     if selectELFConfs:
@@ -168,7 +168,9 @@ def GenerateConformers(
         )
 
     if maximizeDiversity:
-        SelectDiverseConformers(mol, numConfs=numConfs, diverseRmsThresh=diverseRmsThresh)
+        SelectDiverseConformers(
+            mol, numConfs=numConfs, diverseRmsThresh=diverseRmsThresh
+        )
 
     conformer_ids = [conf.GetId() for conf in mol.GetConformers()]
     KeepConformerIds(mol, conformer_ids[:numConfs])
@@ -198,9 +200,7 @@ def RemoveTransAcidConformers(mol: rdChem.Mol):
 
 
 def SelectELFConformers(
-    mol: rdChem.Mol,
-    ELFPercentage: float = 2.0,
-    removeTransAcidConformers: bool = True
+    mol: rdChem.Mol, ELFPercentage: float = 2.0, removeTransAcidConformers: bool = True
 ):
     """Keep percentage of conformers, ranked by electrostatic energy, in-place.
 
@@ -234,9 +234,7 @@ def SelectDiverseConformers(
 
     rms_matrix = GetBestConformerRMS(mol, heavyAtomsOnly=True)
     diverse_indices = get_maximally_diverse_indices(
-        rms_matrix,
-        distance_threshold=diverseRmsThresh,
-        n_indices=numConfs
+        rms_matrix, distance_threshold=diverseRmsThresh, n_indices=numConfs
     )
     conformer_ids = [conf.GetId() for conf in mol.GetConformers()]
     keep_ids = [conformer_ids[i] for i in diverse_indices]
@@ -250,7 +248,7 @@ def SelectDiverseELFConformers(
     numConfs: int = 10,
     ELFPercentage: float = 2.0,
     diverseRmsThresh: float = 0.05,
-    removeTransAcidConformers: bool = True
+    removeTransAcidConformers: bool = True,
 ):
     """Select diverse conformers using the ELF technique, in-place.
 
@@ -271,7 +269,7 @@ def SortConformersByEnergy(
     ffVdwThresh: float = 10.0,
     ffNonBondedThresh: float = 100,
     ffIgnoreInterfragInteractions: bool = True,
-    reverse: bool = False
+    reverse: bool = False,
 ) -> List[float]:
     """Sort conformers in-place on molecule by force field energy.
 
@@ -348,9 +346,9 @@ def CalculateElectrostaticEnergy(
 
     conformers = np.array([c.GetPositions() for c in mol.GetConformers()])
     distances = compute_atom_distance_matrix(conformers)
-    inverse_distances = np.reciprocal(distances,
-                                      out=np.zeros_like(distances),
-                                      where=~np.isclose(distances, 0))
+    inverse_distances = np.reciprocal(
+        distances, out=np.zeros_like(distances), where=~np.isclose(distances, 0)
+    )
 
     charges = np.abs(CalculateMMFFCharges(mol, forcefield)).reshape(-1, 1)
     charge_products = charges @ charges.T
@@ -369,6 +367,7 @@ def SortConformersByElectrostaticInteraction(
 ):
     """Sort conformers in-place by electrostatic energy using MMFF"""
     from .rdmolops import ReorderConformers
+
     energies = CalculateElectrostaticEnergy(mol, forcefield)
     order = np.argsort(energies)
     ReorderConformers(mol, order)
@@ -406,7 +405,7 @@ def RemoveConformersOutsideEnergyWindow(
         ffVdwThresh=ffVdwThresh,
         ffNonBondedThresh=ffNonBondedThresh,
         ffIgnoreInterfragInteractions=ffIgnoreInterfragInteractions,
-        reverse=False
+        reverse=False,
     )
     lowest = energies[0]
     highest = lowest + energyWindow
