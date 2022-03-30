@@ -147,8 +147,10 @@ def SubsetMol(mol: rdChem.Mol, atomIndices: List[int]) -> rdChem.Mol:
 def AtomFromQueryAtom(atom: rdChem.QueryAtom) -> rdChem.Atom:
     """Convert Chem.QueryAtom to Chem.Atom"""
     # this is a separate function just in case I want to add in future...
+    from .rdchem import SetPropsFromDict
     new_atom = rdChem.Atom(atom)
     new_atom.SetProp(_RDPROP_ATOM_SMARTS, atom.GetSmarts())
+    SetPropsFromDict(new_atom, atom.GetPropsAsDict())
     return new_atom
 
 
@@ -159,6 +161,7 @@ def AtomToQueryAtom(
 ) -> rdChem.QueryAtom:
     """Convert Chem.Atom to Chem.QueryAtom"""
     from rdkit.Chem import rdqueries
+    from .rdchem import SetPropsFromDict
 
     if atom.HasProp(_RDPROP_ATOM_SMARTS):
         q = rdChem.AtomFromSmarts(atom.GetProp(_RDPROP_ATOM_SMARTS))
@@ -180,6 +183,9 @@ def AtomToQueryAtom(
             pattern = qiso.GetSmarts().strip("[]")
             if pattern not in q.GetSmarts():
                 q.ExpandQuery(qiso)
+
+    props = atom.GetPropsAsDict()
+    SetPropsFromDict(q, props)
     return q
 
 

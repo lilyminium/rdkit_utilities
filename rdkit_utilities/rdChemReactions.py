@@ -147,7 +147,6 @@ def RunOrClickReaction(
     """Try running reaction, or default to ClickReaction if it does not"""
     if clean:
         reaction, reactants = CleanReaction(reaction, reactants)
-
     products = reaction.RunReactants(reactants)
     if not products:
         products = ClickReaction(reaction, reactants)

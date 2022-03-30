@@ -7,6 +7,8 @@ from typing import List, Tuple, Union, Dict, Any
 from rdkit import Chem as rdChem
 import numpy as np
 
+from .utils import isiterable
+
 
 def AddConformerWithCoordinates(
     mol: rdChem.Mol,
@@ -90,6 +92,8 @@ def GetTaggedSubstructMatches(
 def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, Any]):
     """Set properties from dict, analogous to GetPropsAsDict()"""
     for key, val in properties.items():
+        if key == "__computedProps":
+            continue
         valtype = type(val)
         if val is False or val is True or np.issubdtype(valtype, np.bool_):
             obj.SetBoolProp(key, bool(val))
@@ -97,10 +101,12 @@ def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, 
         elif (isinstance(val, (int, np.int_, np.int16, np.int32, np.int64, np.int0, np.intp, np.intc))
             or np.issubdtype(valtype, np.int_)):
             obj.SetIntProp(key, int(val))
-        elif (isinstance(val, (float, np.float_, np.float16, np.float32, np.float64, np.float128))
+        elif (isinstance(val, (float, np.float_, np.float16, np.float32, np.float64))
             or np.issubdtype(valtype, np.float_)):
             obj.SetDoubleProp(key, float(val))
         elif isinstance(val, str) or np.issubdtype(valtype, str):
             obj.SetProp(key, val)
+        elif isinstance(val, rdChem.rdBase._vecti):
+            obj.SetExplicitBitVectProp(key, val)
         else:
             raise ValueError(f"No setter function for {val} of type {valtype}")

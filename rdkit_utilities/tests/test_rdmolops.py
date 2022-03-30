@@ -102,6 +102,7 @@ def test_MolToMolWithAtoms():
         atom.SetIsotope(10)
     last = query.GetAtomWithIdx(1)
     last.SetAtomMapNum(5)
+    last.SetProp("dummy", "foo")
 
     mol = rdmolops.MolToMolWithAtoms(query)
     assert all(isinstance(a, rdChem.Atom) for a in mol.GetAtoms())
@@ -136,6 +137,7 @@ def test_MolToMolWithAtoms():
     assert at2.GetIsAromatic()
     assert at2.GetAtomMapNum() == 5
     assert at2.GetIsotope() == 10
+    assert at2.GetProp("dummy") == "foo"
 
     assert rdChem.MolToSmarts(query) == "[r5]-[c:5]"
     assert rdChem.MolToSmarts(mol) == "[10#0]-[10#6:5]"
@@ -160,10 +162,12 @@ def test_MolToMolWithQueryAtoms_from_smiles(strict, includeIsotopes, smarts):
     assert at2.GetIsotope() == 4
     assert at2.GetSmarts() == "[4O]"
     assert at3.GetIsotope() == 0
+    at1.SetProp("dummy", "foo")
 
     query = rdmolops.MolToMolWithQueryAtoms(
         mol, strict=strict, includeIsotopes=includeIsotopes
     )
+    assert query.GetAtomWithIdx(0).GetProp("dummy") == "foo"
     output_smarts = rdChem.MolToSmarts(query)
     assert output_smarts == smarts
 

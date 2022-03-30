@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 
 import numpy as np
 
@@ -66,3 +66,16 @@ def get_maximally_diverse_indices(
         selected_indices.append(rmsdist.argmax())
 
     return selected_indices
+
+def isiterable(obj: Any) -> bool:
+    if hasattr(obj, "__next__"):
+        return True
+    if hasattr(obj, "__iter__"):
+        return True
+    try:
+        len(obj)
+    except TypeError:
+        pass
+    else:
+        return True
+    return False
