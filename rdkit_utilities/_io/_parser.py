@@ -46,7 +46,7 @@ def molecule_from_input(mol_input, *args, mol_format: Optional[str] = None, **kw
         except KeyError:
             raise TypeError(
                 f"Molecule format {mol_format} not supported. "
-                f"Supported formats: " + ', '.join(ALL_RDKIT_PARSERS)
+                f"Supported formats: " + ", ".join(ALL_RDKIT_PARSERS)
             )
         return reader(mol_input, *args, **kwargs)
 
@@ -62,5 +62,5 @@ def molecule_from_input(mol_input, *args, mol_format: Optional[str] = None, **kw
     raise TypeError(
         f"Could not create an RDKit molecule from {mol_input}. "
         "Try passing in a `mol_format`. "
-        f"Supported formats: " + ', '.join(ALL_RDKIT_PARSERS)
+        f"Supported formats: " + ", ".join(ALL_RDKIT_PARSERS)
     )

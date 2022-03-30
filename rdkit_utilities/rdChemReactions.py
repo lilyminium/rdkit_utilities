@@ -72,7 +72,9 @@ def ClickReaction(
                     reactant_.RemoveBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
             # keep only one fragment
             mapping = []
-            fragments = rdChem.GetMolFrags(reactant_, asMols=True, sanitizeFrags=False, fragsMolAtomMapping=mapping)
+            fragments = rdChem.GetMolFrags(
+                reactant_, asMols=True, sanitizeFrags=False, fragsMolAtomMapping=mapping
+            )
             for i, fragment_indices in enumerate(mapping):
                 if all(match[x] in fragment_indices for x in indices_to_keep):
                     reactant_list.append(fragments[i])
@@ -113,12 +115,14 @@ def ClickReaction(
         rwproducts.append(rwproduct)
     return rwproducts
 
+
 def CleanReaction(
     reaction: rdChemReactions.ChemicalReaction,
     reactants: Tuple[rdChem.Mol, ...],
 ) -> Tuple[rdChemReactions.ChemicalReaction, Tuple[rdChem.Mol, ...]]:
     """Clean RDKit reaction and reactants by converting them to QueryAtoms or Atoms respectively"""
     from .rdmolops import MolAsMolWithAtoms, MolAsMolWithQueryAtoms
+
     new_reaction = rdChemReactions.ChemicalReaction()
     for reactant in reaction.GetReactants():
         new_reactant = MolAsMolWithQueryAtoms(reactant)
@@ -128,15 +132,11 @@ def CleanReaction(
         new_product = MolAsMolWithQueryAtoms(product)
         new_product.UpdatePropertyCache()
         new_reaction.AddProductTemplate(new_product)
-    
-    reactants = tuple(
-        MolAsMolWithAtoms(mol)
-        for mol in reactants
-    )
+
+    reactants = tuple(MolAsMolWithAtoms(mol) for mol in reactants)
     for reactant in reactants:
         reactant.UpdatePropertyCache()
     return new_reaction, reactants
-
 
 
 def RunOrClickReaction(
@@ -147,9 +147,9 @@ def RunOrClickReaction(
     """Try running reaction, or default to ClickReaction if it does not"""
     if clean:
         reaction, reactants = CleanReaction(reaction, reactants)
-    
+
     products = reaction.RunReactants(reactants)
     if not products:
         products = ClickReaction(reaction, reactants)
-        products = tuple((x, ) for x in products)
+        products = tuple((x,) for x in products)
     return products

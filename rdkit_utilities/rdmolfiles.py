@@ -39,11 +39,6 @@ def MolFromInput(
     orderByMapNumber: bool
         Whether to reorder the molecule by atom map number
     clearAtomMapNumbers: bool
-        Whether to remove / set all atom map numbers to 0 
+        Whether to remove / set all atom map numbers to 0
     """
-    return molecule_from_input(
-        molInput,
-        *args,
-        mol_format=inputFormat,
-        **kwargs
-    )
+    return molecule_from_input(molInput, *args, mol_format=inputFormat, **kwargs)

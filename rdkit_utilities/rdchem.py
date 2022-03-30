@@ -14,6 +14,7 @@ def AddConformerWithCoordinates(
 ) -> int:
     """Add conformer to molecule with coordinates in angstrom"""
     from rdkit import Geometry
+
     n_atoms = mol.GetNumAtoms()
     coord_type = np.asarray(coordinates)
     if coord_type.shape != (n_atoms, 3):
@@ -46,8 +47,9 @@ def GetSymmetricAtomIndices(
     matches = [
         match
         for resMol in rdChem.ResonanceMolSupplier(mol)
-        for match in resMol.GetSubstructMatches(mol, uniquify=False,
-                                                maxMatches=maxMatches)
+        for match in resMol.GetSubstructMatches(
+            mol, uniquify=False, maxMatches=maxMatches
+        )
     ]
     atom_symmetries = set(tuple(sorted(set(x))) for x in zip(*matches))
     return sorted([x for x in atom_symmetries if len(x) > 1])
@@ -68,21 +70,17 @@ def GetTaggedSubstructMatches(
         uniquify=uniquify,
         useChirality=useChirality,
         useQueryQueryMatches=useQueryQueryMatches,
-        maxMatches=maxMatches
+        maxMatches=maxMatches,
     )
     map_numbers = np.array([a.GetAtomMapNum() for a in query.GetAtoms()])
     not_zero = np.where(map_numbers)[0]
     matches = [
-        tuple(x for i, x in enumerate(match) if i in not_zero)
-        for match in matches
+        tuple(x for i, x in enumerate(match) if i in not_zero) for match in matches
     ]
     matches = sorted(set(matches))
     map_numbers = map_numbers[not_zero]
     order = np.argsort(map_numbers)
-    matches = [
-        tuple(match[i] for i in order)
-        for match in matches
-    ]
+    matches = [tuple(match[i] for i in order) for match in matches]
     if mappingAsTaggedDict:
         map_numbers = list(map(int, map_numbers[order]))
         return [dict(zip(map_numbers, match)) for match in matches]
@@ -103,4 +101,3 @@ def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, 
             obj.SetProp(key, val)
         else:
             raise ValueError(f"No setter function for {val} of type {valtype}")
-

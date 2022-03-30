@@ -6,9 +6,7 @@ import numpy as np
 
 
 def GetBestConformerRMS(
-    mol: rdChem.Mol,
-    heavyAtomsOnly: bool = False,
-    confIds: Optional[List[int]] = None
+    mol: rdChem.Mol, heavyAtomsOnly: bool = False, confIds: Optional[List[int]] = None
 ) -> np.ndarray:
     """Get square array of conformer-to-conformer symmetric RMS
 

@@ -60,7 +60,7 @@ def GetMoleculeForceField(
             mol,
             vdwThresh=vdwThresh,
             confId=confId,
-            ignoreInterfragInteractions=ignoreInterfragInteractions
+            ignoreInterfragInteractions=ignoreInterfragInteractions,
         )
 
     # associate MMFF with variants
@@ -76,10 +76,11 @@ def GetMoleculeForceField(
         )
     molprops = rdFF.MMFFGetMoleculeProperties(mol, mmffVariant=forcefield)
     return rdFF.MMFFGetMoleculeForceField(
-        mol, molprops,
+        mol,
+        molprops,
         nonBondedThresh=nonBondedThresh,
         confId=confId,
-        ignoreInterfragInteractions=ignoreInterfragInteractions
+        ignoreInterfragInteractions=ignoreInterfragInteractions,
     )
 
 
@@ -128,7 +129,7 @@ def FFOptimizeMolecule(
             vdwThresh=vdwThresh,
             nonBondedThresh=nonBondedThresh,
             confId=confId,
-            ignoreInterfragInteractions=ignoreInterfragInteractions
+            ignoreInterfragInteractions=ignoreInterfragInteractions,
         )
 
     return rdFF.OptimizeMolecule(forcefield, maxIters=maxIters)
@@ -186,7 +187,7 @@ def FFOptimizeMoleculeConfs(
             vdwThresh=vdwThresh,
             nonBondedThresh=nonBondedThresh,
             confId=confId,
-            ignoreInterfragInteractions=ignoreInterfragInteractions
+            ignoreInterfragInteractions=ignoreInterfragInteractions,
         )
 
     return rdFF.OptimizeMoleculeConfs(

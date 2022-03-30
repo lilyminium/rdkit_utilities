@@ -39,21 +39,17 @@ def test_OrderByMapNumber():
         ({2, 12, 21}, True, 0, {2, 12, 21}),
         ({2, 12, 21}, False, 0, set()),
         ({2, 12, 21}, False, 1, {1, 3, 10, 7, 13, 14, 18, 22, 23, 24}),
-        ({2, 12}, False, 2, {0, 1, 3, 4, 5, 10, 8, 11, 7, 13, 14, 5, 8, 15})
-    ]
+        ({2, 12}, False, 2, {0, 1, 3, 4, 5, 10, 8, 11, 7, 13, 14, 5, 8, 15}),
+    ],
 )
 def test_GetAtomNeighborIndices(
-    propylparaben,
-    core_indices,
-    include_central_atoms,
-    n_neighbors,
-    expected_indices
+    propylparaben, core_indices, include_central_atoms, n_neighbors, expected_indices
 ):
     indices = rdmolops.GetAtomNeighborIndices(
         propylparaben,
         centralAtomIndices=core_indices,
         includeCentralAtoms=include_central_atoms,
-        numAtomNeighbors=n_neighbors
+        numAtomNeighbors=n_neighbors,
     )
     assert indices == expected_indices
 
@@ -61,6 +57,7 @@ def test_GetAtomNeighborIndices(
 @pytest.fixture()
 def mol_with_conformers():
     from rdkit_utilities.rdchem import AddConformerWithCoordinates
+
     mol = rdmolfiles.MolFromSmarts("[O]=[C]=[O]")
     coords = np.zeros((3, 3), dtype=float)
     for i in range(10):
@@ -82,21 +79,13 @@ def test_ReorderConformers(mol_with_conformers):
 
 def test_KeepConformerIds(mol_with_conformers):
     rdmolops.KeepConformerIds(mol_with_conformers, [1, 0, 3, 5, 6, 7])
-    conformer_ids = [
-        conf.GetId()
-        for conf in mol_with_conformers.GetConformers()
-    ]
+    conformer_ids = [conf.GetId() for conf in mol_with_conformers.GetConformers()]
     assert conformer_ids == [0, 1, 3, 5, 6, 7]
 
 
 @pytest.mark.parametrize(
     "atom_indices_in, atom_nums_out",
-    [
-        ([], []),
-        ([0, 1], [1, 2]),
-        ([5, 0, 3, 2], [1, 3, 4]),
-        ((3, 4, 4), [4, 5])
-    ]
+    [([], []), ([0, 1], [1, 2]), ([5, 0, 3, 2], [1, 3, 4]), ((3, 4, 4), [4, 5])],
 )
 def test_SubsetMol(methane, atom_indices_in, atom_nums_out):
     subset = rdmolops.SubsetMol(methane, atom_indices_in)
@@ -155,12 +144,15 @@ def test_MolToMolWithAtoms():
     assert rdChem.MolToSmarts(return_trip) == "[r5&10*]-[c&10*:5]"
 
 
-@pytest.mark.parametrize("strict, includeIsotopes, smarts", [
-    # Atom.GetSmarts contains isotopes even though QueryAtom.GetSmarts does not
-    (False, False, "[C&H1](=[O&4*])-[O&-]"),
-    (False, True, "[C&H1](=[O&4*])-[O&-]"),
-    (True, True, "[C&H1&0*](=[O&4*])-[O&-&0*]")
-])
+@pytest.mark.parametrize(
+    "strict, includeIsotopes, smarts",
+    [
+        # Atom.GetSmarts contains isotopes even though QueryAtom.GetSmarts does not
+        (False, False, "[C&H1](=[O&4*])-[O&-]"),
+        (False, True, "[C&H1](=[O&4*])-[O&-]"),
+        (True, True, "[C&H1&0*](=[O&4*])-[O&-&0*]"),
+    ],
+)
 def test_MolToMolWithQueryAtoms_from_smiles(strict, includeIsotopes, smarts):
     mol = rdChem.MolFromSmiles("C(=[4O])-[O-]")
     assert mol.GetNumAtoms() == 3
@@ -168,18 +160,23 @@ def test_MolToMolWithQueryAtoms_from_smiles(strict, includeIsotopes, smarts):
     assert at2.GetIsotope() == 4
     assert at2.GetSmarts() == "[4O]"
     assert at3.GetIsotope() == 0
-    
-    query = rdmolops.MolToMolWithQueryAtoms(mol, strict=strict, includeIsotopes=includeIsotopes)
+
+    query = rdmolops.MolToMolWithQueryAtoms(
+        mol, strict=strict, includeIsotopes=includeIsotopes
+    )
     output_smarts = rdChem.MolToSmarts(query)
     assert output_smarts == smarts
 
 
-@pytest.mark.parametrize("strict, includeIsotopes, smarts", [
-    # Atom.GetSmarts contains isotopes even though QueryAtom.GetSmarts does not
-    (False, False, "C(=O)-[O&-:5]"),
-    (False, True, "C(=[O&4*])-[O&-:5]"),
-    (True, True, "[C&0*](=[O&4*])-[O&-&0*:5]")
-])
+@pytest.mark.parametrize(
+    "strict, includeIsotopes, smarts",
+    [
+        # Atom.GetSmarts contains isotopes even though QueryAtom.GetSmarts does not
+        (False, False, "C(=O)-[O&-:5]"),
+        (False, True, "C(=[O&4*])-[O&-:5]"),
+        (True, True, "[C&0*](=[O&4*])-[O&-&0*:5]"),
+    ],
+)
 def test_MolToMolWithQueryAtoms_from_smarts(strict, includeIsotopes, smarts):
     mol = rdChem.MolFromSmarts("C(=[O])-[O-]")
     assert mol.GetNumAtoms() == 3
@@ -189,15 +186,20 @@ def test_MolToMolWithQueryAtoms_from_smarts(strict, includeIsotopes, smarts):
     assert at2.GetSmarts() == "O"
     at3.SetAtomMapNum(5)
     assert at3.GetSmarts() == "[O&-:5]"
-    
-    query = rdmolops.MolToMolWithQueryAtoms(mol, strict=strict, includeIsotopes=includeIsotopes)
+
+    query = rdmolops.MolToMolWithQueryAtoms(
+        mol, strict=strict, includeIsotopes=includeIsotopes
+    )
     output_smarts = rdChem.MolToSmarts(query)
     assert output_smarts == smarts
 
     normal_mol = rdmolops.MolToMolWithAtoms(mol)
-    query_from_normal = rdmolops.MolToMolWithQueryAtoms(normal_mol, strict=strict, includeIsotopes=includeIsotopes)
+    query_from_normal = rdmolops.MolToMolWithQueryAtoms(
+        normal_mol, strict=strict, includeIsotopes=includeIsotopes
+    )
     output_smarts_from_normal = rdChem.MolToSmarts(query_from_normal)
     assert output_smarts_from_normal == smarts
+
 
 def test_MolToMolIdentity():
     smiles = rdChem.MolFromSmiles("CC")

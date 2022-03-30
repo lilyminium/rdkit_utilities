@@ -22,12 +22,15 @@ def reorder_constructed_molecule(func):
         mol = func(*args, **kwargs)
         if orderByMapNumber and mol is not None:
             from rdkit_utilities.rdmolops import OrderByMapNumber
+
             mol = OrderByMapNumber(mol, clearAtomMapNumbers=clearAtomMapNumbers)
         elif clearAtomMapNumbers:
             for atom in mol.GetAtoms():
                 atom.SetAtomMapNum(0)
         return mol
+
     return wrapper
+
 
 @reorder_constructed_molecule
 def MolFromSmiles(
@@ -102,10 +105,9 @@ def MolFromSmarts(
         Passed to rdkit.Chem.SmilesParserParams
 
     """
-    mol = rdChem.MolFromSmarts(smarts,
-                               mergeHs=mergeHs,
-                               replacements=replacements)
+    mol = rdChem.MolFromSmarts(smarts, mergeHs=mergeHs, replacements=replacements)
     if not asQueryAtoms and mol is not None:
         from ..rdmolops import MolToMolWithAtoms
+
         return MolToMolWithAtoms(mol)
     return mol

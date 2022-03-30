@@ -16,7 +16,7 @@ def compute_atom_distance_matrix(coordinates: np.ndarray) -> np.ndarray:
     distances: numpy.ndarray
         3D matrix of distances, with shape (n_conformers, n_atoms, n_atoms)
     """
-    dist_sq = np.einsum('ijk,ilk->ijl', coordinates, coordinates)
+    dist_sq = np.einsum("ijk,ilk->ijl", coordinates, coordinates)
     diag = np.einsum("ijj->ij", dist_sq)
     a, b = diag.shape
     dist_sq += dist_sq - diag.reshape((a, 1, b)) - diag.reshape((a, b, 1))
