@@ -84,7 +84,7 @@ def GetTaggedSubstructMatches(
         for match in matches
     ]
     if mappingAsTaggedDict:
-        map_numbers = map_numbers[order]
+        map_numbers = map(int, map_numbers[order])
         return [dict(zip(map_numbers, match)) for match in matches]
     return matches
 

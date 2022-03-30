@@ -29,7 +29,6 @@ def reorder_constructed_molecule(func):
         return mol
     return wrapper
 
-
 @reorder_constructed_molecule
 def MolFromSmiles(
     smiles: str,
@@ -85,6 +84,7 @@ def MolFromSmarts(
     smarts: str,
     mergeHs: bool = False,
     replacements: Dict[str, str] = {},
+    asQueryAtoms: bool = True,
     orderByMapNumber: bool = False,
     clearAtomMapNumbers: bool = False,
 ) -> Optional[rdChem.Mol]:
@@ -105,4 +105,7 @@ def MolFromSmarts(
     mol = rdChem.MolFromSmarts(smarts,
                                mergeHs=mergeHs,
                                replacements=replacements)
+    if not asQueryAtoms and mol is not None:
+        from ..rdmolops import MolToMolWithAtoms
+        return MolToMolWithAtoms(mol)
     return mol

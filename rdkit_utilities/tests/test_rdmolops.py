@@ -2,6 +2,7 @@ import pytest
 
 import numpy as np
 from numpy.testing import assert_allclose
+from rdkit import Chem as rdChem
 
 from rdkit_utilities import rdmolfiles, rdmolops
 
@@ -103,3 +104,115 @@ def test_SubsetMol(methane, atom_indices_in, atom_nums_out):
 
     subset_nums = [atom.GetAtomMapNum() for atom in subset.GetAtoms()]
     assert subset_nums == atom_nums_out
+
+
+def test_MolToMolWithAtoms():
+    query = rdmolfiles.MolFromSmarts("[*&r5]-[c:3]")
+    assert all(isinstance(a, rdChem.QueryAtom) for a in query.GetAtoms())
+    for atom in query.GetAtoms():
+        atom.SetIsotope(10)
+    last = query.GetAtomWithIdx(1)
+    last.SetAtomMapNum(5)
+
+    mol = rdmolops.MolToMolWithAtoms(query)
+    assert all(isinstance(a, rdChem.Atom) for a in mol.GetAtoms())
+
+    assert mol.GetNumAtoms() == 2
+    at1, at2 = list(mol.GetAtoms())
+    q1, q2 = list(query.GetAtoms())
+
+    assert q1.GetAtomicNum() == 0
+    assert q1.GetSymbol() == "*"
+    assert not q1.IsInRing()  # shouldn't show up in mol
+    assert not q1.GetIsAromatic()
+    assert not q1.GetAtomMapNum()
+    assert q1.GetIsotope() == 10
+    assert q1.GetSmarts() == "[r5]"
+
+    assert at1.GetAtomicNum() == 0
+    assert at1.GetSymbol() == "*"
+    assert not at1.IsInRing()  # shouldn't show up in mol
+    assert not at1.GetIsAromatic()
+    assert not at1.GetAtomMapNum()
+    assert at1.GetIsotope() == 10
+
+    assert q2.GetAtomicNum() == 6
+    assert q2.GetSymbol() == "C"
+    assert q2.GetIsAromatic()
+    assert q2.GetAtomMapNum() == 5
+    assert q2.GetIsotope() == 10
+
+    assert at2.GetAtomicNum() == 6
+    assert at2.GetSymbol() == "C"
+    assert at2.GetIsAromatic()
+    assert at2.GetAtomMapNum() == 5
+    assert at2.GetIsotope() == 10
+
+    assert rdChem.MolToSmarts(query) == "[r5]-[c:5]"
+    assert rdChem.MolToSmarts(mol) == "[10#0]-[10#6:5]"
+
+    return_trip = rdmolops.MolToMolWithQueryAtoms(mol)
+    assert rdChem.MolToSmarts(return_trip) == "[r5&10*]-[c&10*:5]"
+
+
+@pytest.mark.parametrize("strict, includeIsotopes, smarts", [
+    # Atom.GetSmarts contains isotopes even though QueryAtom.GetSmarts does not
+    (False, False, "[C&H1](=[O&4*])-[O&-]"),
+    (False, True, "[C&H1](=[O&4*])-[O&-]"),
+    (True, True, "[C&H1&0*](=[O&4*])-[O&-&0*]")
+])
+def test_MolToMolWithQueryAtoms_from_smiles(strict, includeIsotopes, smarts):
+    mol = rdChem.MolFromSmiles("C(=[4O])-[O-]")
+    assert mol.GetNumAtoms() == 3
+    at1, at2, at3 = list(mol.GetAtoms())
+    assert at2.GetIsotope() == 4
+    assert at2.GetSmarts() == "[4O]"
+    assert at3.GetIsotope() == 0
+    
+    query = rdmolops.MolToMolWithQueryAtoms(mol, strict=strict, includeIsotopes=includeIsotopes)
+    output_smarts = rdChem.MolToSmarts(query)
+    assert output_smarts == smarts
+
+
+@pytest.mark.parametrize("strict, includeIsotopes, smarts", [
+    # Atom.GetSmarts contains isotopes even though QueryAtom.GetSmarts does not
+    (False, False, "C(=O)-[O&-:5]"),
+    (False, True, "C(=[O&4*])-[O&-:5]"),
+    (True, True, "[C&0*](=[O&4*])-[O&-&0*:5]")
+])
+def test_MolToMolWithQueryAtoms_from_smarts(strict, includeIsotopes, smarts):
+    mol = rdChem.MolFromSmarts("C(=[O])-[O-]")
+    assert mol.GetNumAtoms() == 3
+    at1, at2, at3 = list(mol.GetAtoms())
+    assert at1.GetSmarts() == "C"
+    at2.SetIsotope(4)
+    assert at2.GetSmarts() == "O"
+    at3.SetAtomMapNum(5)
+    assert at3.GetSmarts() == "[O&-:5]"
+    
+    query = rdmolops.MolToMolWithQueryAtoms(mol, strict=strict, includeIsotopes=includeIsotopes)
+    output_smarts = rdChem.MolToSmarts(query)
+    assert output_smarts == smarts
+
+    normal_mol = rdmolops.MolToMolWithAtoms(mol)
+    query_from_normal = rdmolops.MolToMolWithQueryAtoms(normal_mol, strict=strict, includeIsotopes=includeIsotopes)
+    output_smarts_from_normal = rdChem.MolToSmarts(query_from_normal)
+    assert output_smarts_from_normal == smarts
+
+def test_MolToMolIdentity():
+    smiles = rdChem.MolFromSmiles("CC")
+    smiles_to_smiles = rdmolops.MolAsMolWithAtoms(smiles)
+    assert smiles_to_smiles is smiles
+    print("---")
+
+    smiles_to_smarts = rdmolops.MolAsMolWithQueryAtoms(smiles)
+    assert smiles_to_smarts is not smiles
+    assert rdChem.MolToSmarts(smiles_to_smarts) == "[C&H3]-[C&H3]"
+
+    smarts = rdChem.MolFromSmarts("CC")
+    smarts_to_smiles = rdmolops.MolAsMolWithAtoms(smarts)
+    assert smarts_to_smiles is not smarts
+    assert rdChem.MolToSmarts(smarts) == "CC"
+
+    smarts_to_smarts = rdmolops.MolAsMolWithQueryAtoms(smarts)
+    assert smarts_to_smarts is smarts
