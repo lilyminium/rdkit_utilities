@@ -112,3 +112,44 @@ def ClickReaction(
         rwproduct.UpdatePropertyCache()
         rwproducts.append(rwproduct)
     return rwproducts
+
+def CleanReaction(
+    reaction: rdChemReactions.ChemicalReaction,
+    reactants: Tuple[rdChem.Mol, ...],
+) -> Tuple[rdChemReactions.ChemicalReaction, Tuple[rdChem.Mol, ...]]:
+    """Clean RDKit reaction and reactants by converting them to QueryAtoms or Atoms respectively"""
+    from .rdmolops import MolAsMolWithAtoms, MolAsMolWithQueryAtoms
+    new_reaction = rdChemReactions.ChemicalReaction()
+    for reactant in reaction.GetReactants():
+        new_reactant = MolAsMolWithQueryAtoms(reactant)
+        new_reactant.UpdatePropertyCache()
+        new_reaction.AddReactantTemplate(new_reactant)
+    for product in reaction.GetProducts():
+        new_product = MolAsMolWithQueryAtoms(product)
+        new_product.UpdatePropertyCache()
+        new_reaction.AddProductTemplate(new_product)
+    
+    reactants = tuple(
+        MolAsMolWithAtoms(mol)
+        for mol in reactants
+    )
+    for reactant in reactants:
+        reactant.UpdatePropertyCache()
+    return new_reaction, reactants
+
+
+
+def RunOrClickReaction(
+    reaction: rdChemReactions.ChemicalReaction,
+    reactants: Tuple[rdChem.Mol, ...],
+    clean: bool = True,
+) -> Tuple[Tuple[rdChem.Mol, ...]]:
+    """Try running reaction, or default to ClickReaction if it does not"""
+    if clean:
+        reaction, reactants = CleanReaction(reaction, reactants)
+    
+    products = reaction.RunReactants(reactants)
+    if not products:
+        products = ClickReaction(reaction, reactants)
+        products = tuple((x, ) for x in products)
+    return products

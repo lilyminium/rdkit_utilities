@@ -203,7 +203,6 @@ def test_MolToMolIdentity():
     smiles = rdChem.MolFromSmiles("CC")
     smiles_to_smiles = rdmolops.MolAsMolWithAtoms(smiles)
     assert smiles_to_smiles is smiles
-    print("---")
 
     smiles_to_smarts = rdmolops.MolAsMolWithQueryAtoms(smiles)
     assert smiles_to_smarts is not smiles
