@@ -5,6 +5,7 @@ API Documentation
    :caption: Modules
 
    rdchem
+   rdChemReactions
    rdDistGeom
    rdForceFieldHelpers
    rdMolAlign
