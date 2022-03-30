@@ -84,7 +84,7 @@ def GetTaggedSubstructMatches(
         for match in matches
     ]
     if mappingAsTaggedDict:
-        map_numbers = map(int, map_numbers[order])
+        map_numbers = list(map(int, map_numbers[order]))
         return [dict(zip(map_numbers, match)) for match in matches]
     return matches
 
@@ -103,3 +103,4 @@ def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, 
             obj.SetProp(key, val)
         else:
             raise ValueError(f"No setter function for {val} of type {valtype}")
+

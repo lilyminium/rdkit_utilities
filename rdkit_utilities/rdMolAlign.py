@@ -37,7 +37,7 @@ def GetBestConformerRMS(
     n_conformers = len(confIds)
 
     if heavyAtomsOnly:
-        mol = rdChem.RemoveHs(mol, sanitize=False)
+        mol = rdChem.RemoveAllHs(mol, sanitize=False)
         rdChem.SanitizeMol(
             mol,
             rdChem.SANITIZE_ALL
