@@ -134,12 +134,31 @@ def KeepConformerIds(mol: rdChem.Mol, confIds: Union[List[int], np.ndarray]):
         mol.RemoveConformer(confid)
 
 
-def SubsetMol(mol: rdChem.Mol, atomIndices: List[int]) -> rdChem.Mol:
+def SubsetMol(
+    mol: rdChem.Mol,
+    atomIndices: List[int],
+    reorder: bool = False,
+    clear_atom_valences: bool = True,
+) -> rdChem.Mol:
     """Return a subset of a molecule, as a copy"""
     mol = rdChem.RWMol(mol)
-    to_delete = [i for i in range(mol.GetNumAtoms()) if i not in atomIndices]
+    all_indices = list(range(mol.GetNumAtoms()))
+    to_keep = [i for i in atomIndices if i in all_indices]
+    to_delete = [i for i in all_indices if i not in to_keep]
+    if reorder:
+        new_order = tuple(to_keep + to_delete)
+        mol = rdChem.RWMol(rdChem.RenumberAtoms(mol, new_order))
+        to_delete = range(len(to_keep), mol.GetNumAtoms())
+
     for index in to_delete[::-1]:
         mol.RemoveAtom(index)
+
+    if clear_atom_valences:
+        for atom in mol.GetAtoms():
+            atom.SetNumRadicalElectrons(0)
+            atom.SetNoImplicit(False)
+            atom.UpdatePropertyCache()
+
     mol.UpdatePropertyCache()
     return rdChem.Mol(mol)
 

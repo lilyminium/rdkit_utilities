@@ -43,6 +43,8 @@ def GetMoleculeForceField(
     -------
     rdkit.Chem.rdForceFieldHelpers.ForceField
     """
+    if mol.GetNumConformers() == 0:
+        raise ValueError("Molecule must have conformers to create a force field")
 
     forcefield = forcefield.upper()
     if forcefield not in RDKIT_FF_NAMES:
