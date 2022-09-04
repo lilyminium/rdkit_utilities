@@ -1,5 +1,5 @@
-rdkit_utilities.utils
-=====================
+rdkit_utilities.utilities
+=========================
 
-.. automodule:: rdkit_utilities.utils
+.. automodule:: rdkit_utilities.utilities
     :members:

@@ -7,7 +7,7 @@ from typing import List, Tuple, Union, Dict, Any
 from rdkit import Chem as rdChem
 import numpy as np
 
-from .utils import isiterable
+from .utilities import isiterable
 
 
 def AddConformerWithCoordinates(
@@ -99,10 +99,10 @@ def SetPropsFromDict(obj: Union[rdChem.Mol, rdChem.Atom], properties: Dict[str, 
             obj.SetBoolProp(key, bool(val))
         # exhaustively list np types for Windows
         elif (isinstance(val, (int, np.int_, np.int16, np.int32, np.int64, np.int0, np.intp, np.intc))
-            or np.issubdtype(valtype, np.int_)):
+              or np.issubdtype(valtype, np.int_)):
             obj.SetIntProp(key, int(val))
         elif (isinstance(val, (float, np.float_, np.float16, np.float32, np.float64))
-            or np.issubdtype(valtype, np.float_)):
+              or np.issubdtype(valtype, np.float_)):
             obj.SetDoubleProp(key, float(val))
         elif isinstance(val, str) or np.issubdtype(valtype, str):
             obj.SetProp(key, val)
