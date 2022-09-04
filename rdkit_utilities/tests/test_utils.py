@@ -5,10 +5,10 @@ from numpy.testing import assert_allclose
 
 
 def test_compute_distance_matrix():
-    from rdkit_utilities import utils
+    from rdkit_utilities import utilities
 
     arr = np.arange(24).reshape((2, 4, 3))
-    rms = utils.compute_atom_distance_matrix(arr)
+    rms = utilities.compute_atom_distance_matrix(arr)
     assert rms.shape == (2, 4, 4)
 
     first_row = [0, 5.19615242, 10.39230485, 15.58845727]
@@ -31,7 +31,7 @@ def test_compute_distance_matrix():
     ],
 )
 def test_get_maximally_diverse_indices(threshold, n_indices, indices):
-    from rdkit_utilities import utils
+    from rdkit_utilities import utilities
 
     arr = np.array(
         [
@@ -41,7 +41,7 @@ def test_get_maximally_diverse_indices(threshold, n_indices, indices):
             [15.58845727, 10.39230485, 5.19615242, 0.0],
         ]
     )
-    computed = utils.get_maximally_diverse_indices(
+    computed = utilities.get_maximally_diverse_indices(
         arr,
         distance_threshold=threshold,
         n_indices=n_indices,

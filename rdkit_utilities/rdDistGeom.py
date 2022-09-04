@@ -230,7 +230,7 @@ def SelectDiverseConformers(
     """
     from .rdMolAlign import GetBestConformerRMS
     from .rdmolops import KeepConformerIds
-    from .utils import get_maximally_diverse_indices
+    from .utilities import get_maximally_diverse_indices
 
     rms_matrix = GetBestConformerRMS(mol, heavyAtomsOnly=True)
     diverse_indices = get_maximally_diverse_indices(
@@ -342,7 +342,7 @@ def CalculateElectrostaticEnergy(
     energies: numpy.ndarray
         Array of energies, one for each conformer
     """
-    from .utils import compute_atom_distance_matrix
+    from .utilities import compute_atom_distance_matrix
 
     conformers = np.array([c.GetPositions() for c in mol.GetConformers()])
     distances = compute_atom_distance_matrix(conformers)

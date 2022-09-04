@@ -11,4 +11,4 @@ API Documentation
    rdMolAlign
    rdmolfiles
    rdmolops
-   utils
+   utilities
