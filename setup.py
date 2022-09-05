@@ -48,6 +48,7 @@ setup(
     # url='http://www.my_package.com',  # Website
     install_requires=[
         "numpy",
+        "rdkit",
         "typing_extensions"
     ],              # Required packages, pulls from pip if needed; do not use for Conda deployment
     platforms=['Linux',
